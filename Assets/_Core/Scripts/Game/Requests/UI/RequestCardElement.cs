@@ -98,6 +98,7 @@ namespace GMTK_2026
 
 			// Result
 			_resultArea = new VisualElement { pickingMode = PickingMode.Ignore };
+			_resultArea.AddToClassList("req-card__result");
 
 			Add(titleRow);
 			Add(_description);

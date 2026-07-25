@@ -61,7 +61,13 @@ namespace GMTK_2026
 				content.RemoveAt(0);
 			}
 
-			_body.ScrollTo(entry);
+			_body.schedule.Execute(() =>
+			{
+				if (_body.verticalScroller != null)
+				{
+					_body.verticalScroller.value = _body.verticalScroller.highValue;
+				}
+			}).ExecuteLater(32);
 		}
 
 		public void Clear() => _body?.Clear();

@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace GMTK_2026
 {
-	public class GameScreenPresentation : MonoBehaviour
+	public class GameScreenEffect : MonoBehaviour
 	{
 		[SerializeField]
 		private UIDocument _document = null;

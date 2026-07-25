@@ -141,8 +141,8 @@
 .req-card {
     background-color: var(--card);
     border-width: 1px; border-color: var(--border); border-radius: 12px;
-    padding: 14px;
-    margin-top: 10px; margin-bottom: 4px;
+    padding: 12px;
+    margin-top: 8px; margin-bottom: 4px;
     /* accent top edge (stand-in for the mockup's animated shimmer bar) */
     border-top-width: 3px; border-top-color: var(--accent);
 }
@@ -158,17 +158,17 @@
     padding: 3px 9px; margin-left: 12px;
 }
 .req-card__desc {
-    font-size: 12px; color: var(--fg-muted); white-space: normal; margin-bottom: 10px;
+    font-size: 12px; color: var(--fg-muted); white-space: normal; margin-bottom: 8px;
 }
 
 /* countdown box */
 .cd-box {
     flex-direction: row; align-items: center;
-    padding: 8px 12px; margin-bottom: 10px;
+    padding: 7px 12px; margin-bottom: 8px;
     background-color: rgba(0, 0, 0, 0.3);
     border-width: 1px; border-color: var(--border); border-radius: 8px;
 }
-.cd-ring { width: 40px; height: 40px; margin-right: 12px; }
+.cd-ring { width: 36px; height: 36px; margin-right: 12px; }
 .cd-num {
     position: absolute; left: 0; top: 0; right: 0; bottom: 0;
     -unity-text-align: middle-center; font-size: 13px; -unity-font-style: bold;
@@ -181,14 +181,14 @@
 .cd-status--crit { color: var(--danger); }
 
 /* detail cards (the request body — pilot / planet / ship) */
-.req-card__body { margin-bottom: 10px; }
+.req-card__body { margin-bottom: 8px; }
 .request-view--landing { flex-direction: row; flex-wrap: wrap; }
 
 .entity-view {
     flex-grow: 1; flex-basis: 30%; min-width: 120px;
     background-color: rgba(0, 0, 0, 0.28);
     border-width: 1px; border-color: var(--border); border-radius: 8px;
-    padding: 9px; margin-right: 6px; margin-bottom: 6px;
+    padding: 8px; margin-right: 6px; margin-bottom: 6px;
 }
 .entity-view__head {
     flex-direction: row; align-items: center;
@@ -219,7 +219,7 @@
 /* action buttons */
 .req-card__actions { flex-direction: row; }
 .req-btn {
-    flex-grow: 1; height: 32px; margin-right: 10px;
+    flex-grow: 1; height: 30px; margin-right: 10px;
     border-width: 1px; border-radius: 8px;
     font-size: 12px; -unity-font-style: bold; letter-spacing: 1px;
     transition-duration: 0.15s;
@@ -239,20 +239,25 @@
 .req-btn--deny:hover { background-color: rgba(255, 71, 87, 0.22); border-color: var(--danger); }
 .req-btn:disabled { opacity: 0.4; }
 
-/* result feedback bar (shown after a decision) */
+.req-card__result {
+    position: absolute;
+    left: 12px; right: 12px; bottom: 12px;
+    justify-content: center;
+}
 .result-bar {
-    margin-top: 8px; padding: 7px 12px;
+    padding: 7px 12px;
     border-radius: 8px; border-width: 1px;
     font-size: 11px; white-space: normal;
+    -unity-text-align: middle-center;
 }
 .result-bar--ok {
-    background-color: rgba(0, 255, 136, 0.08);
-    border-color: rgba(0, 255, 136, 0.2);
+    background-color: rgb(13, 34, 26);
+    border-color: rgba(0, 255, 136, 0.35);
     color: var(--accent);
 }
 .result-bar--err {
-    background-color: rgba(255, 71, 87, 0.08);
-    border-color: rgba(255, 71, 87, 0.2);
+    background-color: rgb(38, 18, 21);
+    border-color: rgba(255, 71, 87, 0.35);
     color: var(--danger);
 }
 

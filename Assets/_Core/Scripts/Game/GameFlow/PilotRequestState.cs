@@ -75,7 +75,7 @@ namespace GMTK_2026
 			string pilot = request.Pilot?.Name;
 			string decision = choice == PlayerChoice.Approved ? "ACCESS" : "DECLINE";
 			string why = verdict.IsApproved
-				? "All survival checks passed."
+				? "All checks passed."
 				: string.Join(" ", verdict.Reasons);
 
 			if (correct)
