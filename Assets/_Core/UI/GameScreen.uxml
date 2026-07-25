@@ -4,39 +4,77 @@
     <Style src="RaFileSystem.uss" />
     <Style src="GameScreen.uss" />
 
-    <ui:VisualElement name="game-screen" class="game-screen">
+    <ui:Template name="RaFileSystem" src="project://database/Assets/_Core/UI/RaFileSystem.uxml?fileID=9197481963319205126&amp;guid=201dff0eabfbfe74daed89fb234bbc23&amp;type=3#RaFileSystem" />
 
-        <!-- Left: FileSystem -->
-        <ui:VisualElement name="game-screen__left" class="game-screen__pane">
-            <ui:VisualElement name="ra-window" class="ra-window">
+    <ui:VisualElement name="game-root" class="app">
 
-                <ui:VisualElement name="ra-toolbar" class="ra-toolbar">
-                    <ui:Button name="ra-back-button" text="←" class="ra-back-button" />
-                    <ui:VisualElement name="ra-breadcrumb" class="ra-breadcrumb" />
+        <!-- Top bar -->
+        <ui:VisualElement name="topbar" class="topbar">
+            <ui:VisualElement class="topbar-left">
+                <ui:Label name="station-logo" text="🛰" class="station-logo" />
+                <ui:VisualElement>
+                    <ui:Label text="STATION ALPHA" class="station-name" />
+                    <ui:Label text="OPERATOR TERMINAL" class="station-sub" />
                 </ui:VisualElement>
-
-                <ui:ScrollView name="ra-contents" class="ra-contents" />
-
-                <ui:VisualElement name="ra-statusbar" class="ra-statusbar">
-                    <ui:Label name="ra-status-label" text="" class="ra-status-label" />
+            </ui:VisualElement>
+            <ui:VisualElement class="topbar-stats">
+                <ui:VisualElement class="stat">
+                    <ui:Label name="stat-correct" text="0" class="stat-value" />
                 </ui:VisualElement>
-
+                <ui:VisualElement class="stat">
+                    <ui:Label name="stat-wrong" text="0" class="stat-value stat-value--danger" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <!-- Right: Requests -->
-        <ui:VisualElement name="game-screen__right" class="game-screen__pane game-screen__pane--right">
-            <ui:VisualElement name="req-window" class="req-window">
+        <!-- Main split -->
+        <ui:VisualElement name="main-content" class="main-content">
 
-                <ui:VisualElement name="req-header" class="req-header">
-                    <ui:Label name="req-title" text="Incoming Requests" class="req-title" />
+            <!-- Left: file system terminal -->
+            <ui:VisualElement name="terminal-panel" class="terminal-panel">
+                <ui:VisualElement class="terminal-header">
+                    <ui:VisualElement class="td td--r" />
+                    <ui:VisualElement class="td td--y" />
+                    <ui:VisualElement class="td td--g" />
+                    <ui:Label text="FILE SYSTEM" class="terminal-title" />
+                </ui:VisualElement>
+                <ui:Instance template="RaFileSystem" class="game-screen__fill" />
+            </ui:VisualElement>
+
+            <!-- Right: requests + log -->
+            <ui:VisualElement name="request-panel" class="request-panel">
+                <ui:VisualElement class="req-header">
+                    <ui:Label text="INCOMING REQUEST" class="req-header-title" />
                     <ui:Label name="req-count" text="" class="req-count" />
                 </ui:VisualElement>
 
                 <ui:ScrollView name="req-list" class="req-list" />
 
+                <ui:VisualElement class="log-sec">
+                    <ui:Label text="OPERATION LOG" class="log-head" />
+                    <ui:ScrollView name="log-body" class="log-body" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <!-- Status bar -->
+        <ui:VisualElement name="statusbar" class="statusbar">
+            <ui:VisualElement class="sb-l">
+                <ui:VisualElement class="sb-ind">
+                    <ui:VisualElement name="sb-dot" class="sb-dot" />
+                    <ui:Label text="SYSTEM ONLINE" class="sb-text" />
+                </ui:VisualElement>
+                <ui:Label text="SECTOR 7G" class="sb-text" />
+                <ui:Label text="FREQ 142.8 MHz" class="sb-text" />
+            </ui:VisualElement>
+            <ui:VisualElement class="sb-r">
+                <ui:Label name="clock" text="--:--:--" class="sb-text" />
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <!-- Toast popovers (top-right overlay) -->
+        <ui:VisualElement name="toast-box" class="toast-box" picking-mode="Ignore" />
 
     </ui:VisualElement>
 </ui:UXML>

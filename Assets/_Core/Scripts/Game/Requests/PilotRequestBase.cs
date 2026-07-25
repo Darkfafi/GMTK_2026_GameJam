@@ -33,6 +33,10 @@ namespace GMTK_2026
 
 		public bool IsExpired => TimeRemaining <= 0f;
 
+		public bool IsResolved { get; private set; }
+
+		public void Resolve() => IsResolved = true;
+
 		protected PilotRequestBase(CreatureEntity pilot, float timeLimit = 20f)
 		{
 			SetDependency(DependencyKeys.Pilot, pilot);

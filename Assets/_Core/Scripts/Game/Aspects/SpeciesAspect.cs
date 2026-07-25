@@ -21,6 +21,19 @@ namespace GMTK_2026
 			s.Intolerances.Add(EnvironmentTag.Oxygen);
 		});
 
+		public static readonly SpeciesAspect Aquatoid = Build("Aquatoid", "Amphibious, water-dependent.", s =>
+		{
+			s.Requires.Add(EnvironmentTag.Water);
+			s.Intolerances.Add(EnvironmentTag.Heat);
+		});
+
+		public static readonly SpeciesAspect Volcan = Build("Volcan", "Magma-dwelling entity.", s =>
+		{
+			s.Requires.Add(EnvironmentTag.Heat);
+			s.Intolerances.Add(EnvironmentTag.Cold);
+			s.Intolerances.Add(EnvironmentTag.Water);
+		});
+
 		private static SpeciesAspect Build(string name, string description, Action<SpeciesAspect> configure)
 		{
 			SpeciesAspect species = new SpeciesAspect(name, description);

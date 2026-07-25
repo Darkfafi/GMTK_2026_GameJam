@@ -17,6 +17,10 @@ namespace GMTK_2026
 		private VisualElement _breadcrumb;
 		private ScrollView _contents;
 		private Label _statusLabel;
+		private VisualElement _fileContent;
+		private Label _fcText;
+		private bool _isFileContentOpen;
+		private RaFile _openFile;
 
 		private readonly List<RaFolder> _path = new List<RaFolder>();
 		private readonly List<RaEntityElement> _rowPool = new List<RaEntityElement>();
@@ -33,11 +37,15 @@ namespace GMTK_2026
 			_breadcrumb = root.Q<VisualElement>("ra-breadcrumb");
 			_contents = root.Q<ScrollView>("ra-contents");
 			_statusLabel = root.Q<Label>("ra-status-label");
+			_fileContent = root.Q<VisualElement>("ra-file-content");
+			_fcText = root.Q<Label>("fc-text");
 
 			if (_backButton != null)
 			{
-				_backButton.clicked += NavigateUp;
+				_backButton.clicked += OnBackClicked;
 			}
+
+			CloseFileContent();
 
 			if (_path.Count > 0)
 			{
@@ -48,7 +56,70 @@ namespace GMTK_2026
 		private void OnDisable()
 		{
 			if (_backButton != null)
-				_backButton.clicked -= NavigateUp;
+				_backButton.clicked -= OnBackClicked;
+		}
+
+		private void OnBackClicked()
+		{
+			if (_isFileContentOpen)
+			{
+				CloseFileContent();
+			}
+			else
+			{
+				NavigateUp();
+			}
+		}
+
+		public void OpenFileContent(RaFile file)
+		{
+			if (_fileContent == null || file == null)
+			{
+				return;
+			}
+
+			_isFileContentOpen = true;
+			_openFile = file;
+			_fcText.text = TerminalMarkdown.ToRichText(file.Content);
+			_fileContent.style.display = DisplayStyle.Flex;
+			_contents.style.display = DisplayStyle.None;
+			if (_statusLabel != null)
+			{
+				_statusLabel.parent.style.display = DisplayStyle.None;
+			}
+			RenderBreadcrumb();
+			RefreshBackButton();
+		}
+
+		public void CloseFileContent()
+		{
+			if (_fileContent == null)
+			{
+				return;
+			}
+
+			bool wasOpen = _isFileContentOpen;
+			_isFileContentOpen = false;
+			_openFile = null;
+			_fileContent.style.display = DisplayStyle.None;
+			_contents.style.display = DisplayStyle.Flex;
+			if (_statusLabel != null)
+			{
+				_statusLabel.parent.style.display = DisplayStyle.Flex;
+			}
+			if (wasOpen)
+			{
+				RenderBreadcrumb();
+			}
+			RefreshBackButton();
+		}
+
+		private void RefreshBackButton()
+		{
+			if (_backButton != null)
+			{
+				_backButton.SetEnabled(_path.Count > 1 || _isFileContentOpen);
+			}
 		}
 
 		public void SetRootFolder(RaFolder rootFolder)
@@ -106,13 +177,10 @@ namespace GMTK_2026
 				return;
 			}
 
+			CloseFileContent();
 			RenderBreadcrumb();
 			RenderContents();
-
-			if (_backButton != null)
-			{
-				_backButton.SetEnabled(_path.Count > 1);
-			}
+			RefreshBackButton();
 		}
 
 		private void RenderBreadcrumb()
@@ -121,13 +189,17 @@ namespace GMTK_2026
 
 			for (int i = 0; i < _path.Count; i++)
 			{
-				bool isCurrent = i == _path.Count - 1;
+				bool isCurrent = i == _path.Count - 1 && _openFile == null;
 
 				var crumb = new Button { text = _path[i].Name };
 				crumb.AddToClassList("ra-crumb");
 				if (isCurrent)
 				{
 					crumb.AddToClassList("ra-crumb--current");
+				}
+				else if (_openFile != null && i == _path.Count - 1)
+				{
+					crumb.clicked += CloseFileContent;
 				}
 				else
 				{
@@ -143,6 +215,14 @@ namespace GMTK_2026
 					sep.AddToClassList("ra-crumb-separator");
 					_breadcrumb.Add(sep);
 				}
+			}
+
+			if (_openFile != null)
+			{
+				var fileCrumb = new Button { text = _openFile.Name };
+				fileCrumb.AddToClassList("ra-crumb");
+				fileCrumb.AddToClassList("ra-crumb--current");
+				_breadcrumb.Add(fileCrumb);
 			}
 		}
 
@@ -192,6 +272,7 @@ namespace GMTK_2026
 			_selected?.SetSelected(false);
 			_selected = row;
 			row.SetSelected(true);
+			OnRowActivated(row);
 		}
 
 		private void OnRowActivated(RaEntityElement row)
@@ -206,6 +287,10 @@ namespace GMTK_2026
 			}
 			else
 			{
+				if (entity is RaFile raFile)
+				{
+					OpenFileContent(raFile);
+				}
 				FileOpenedEvent?.Invoke(entity);
 			}
 		}

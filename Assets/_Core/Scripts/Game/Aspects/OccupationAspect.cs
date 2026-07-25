@@ -16,6 +16,16 @@ namespace GMTK_2026
 			o.Removes.Add(EnvironmentTag.Vacuum);
 		});
 
+		public static readonly OccupationAspect HazmatSpecialist = Build("Hazmat Specialist", "Trained in toxic environments.", o =>
+		{
+			o.Removes.Add(EnvironmentTag.Radiation);
+		});
+
+		public static readonly OccupationAspect DeepMiner = Build("Deep Miner", "Used to extreme pressure.", o =>
+		{
+			o.Removes.Add(EnvironmentTag.Pressure);
+		});
+
 		private static OccupationAspect Build(string name, string description, Action<OccupationAspect> configure)
 		{
 			OccupationAspect occupation = new OccupationAspect(name, description);

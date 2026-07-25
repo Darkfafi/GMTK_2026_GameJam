@@ -62,6 +62,11 @@ namespace GMTK_2026
 			_uiWindow.RemoveRequest(request);
 		}
 
+		public void ShowResult(PilotRequestBase request, bool correct, string message)
+		{
+			_uiWindow.ShowResult(request, correct, message);
+		}
+
 		private void Update()
 		{
 			if (!HasData)
@@ -75,6 +80,11 @@ namespace GMTK_2026
 			for (int i = 0; i < _activeRequests.Count; i++)
 			{
 				PilotRequestBase request = _activeRequests[i];
+				if (request.IsResolved)
+				{
+					continue;
+				}
+
 				bool justExpired = request.TickTime(deltaTime);
 				_uiWindow.SetTimeNormalized(request, request.TimeNormalized);
 

@@ -14,6 +14,7 @@ namespace GMTK_2026
 
 		private readonly Label _icon;
 		private readonly Label _label;
+		private readonly Label _size;
 
 		public RaFileSystemItemBase Entity { get; private set; }
 
@@ -27,8 +28,12 @@ namespace GMTK_2026
 			_label = new Label { pickingMode = PickingMode.Ignore };
 			_label.AddToClassList("ra-entity__label");
 
+			_size = new Label { pickingMode = PickingMode.Ignore };
+			_size.AddToClassList("ra-entity__size");
+
 			Add(_icon);
 			Add(_label);
+			Add(_size);
 
 			RegisterCallback<ClickEvent>(OnClickedEvent);
 		}
@@ -37,10 +42,28 @@ namespace GMTK_2026
 		{
 			Entity = entity;
 			_label.text = entity?.Name ?? string.Empty;
+
 			bool isFolder = entity is RaFolder;
-			_icon.text = isFolder ? "📁" : "📄";
+			bool isImage = !isFolder && IsImage(entity?.Name);
+
+			_icon.text = isFolder ? "📁" : (isImage ? "🖼" : "📄");
+			_icon.EnableInClassList("ra-entity__icon--folder", isFolder);
+			_icon.EnableInClassList("ra-entity__icon--image", isImage);
+			_icon.EnableInClassList("ra-entity__icon--file", !isFolder && !isImage);
+
+			_size.text = entity is RaFile file ? file.Size : string.Empty;
+
 			EnableInClassList(FolderModifier, isFolder);
 			SetSelected(false);
+		}
+
+		private static bool IsImage(string name)
+		{
+			if (string.IsNullOrEmpty(name))
+			{
+				return false;
+			}
+			return name.EndsWith(".jpg") || name.EndsWith(".jpeg") || name.EndsWith(".png");
 		}
 
 		public void SetSelected(bool selected) => EnableInClassList(SelectedModifier, selected);

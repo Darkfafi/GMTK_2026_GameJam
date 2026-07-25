@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace GMTK_2026
 {
@@ -70,10 +71,18 @@ namespace GMTK_2026
 
 	public class RaFile : RaFileSystemItemBase
 	{
-		public RaFile(string name)
+		public string Content { get; private set; }
+		public string Size { get; private set; }
+
+		public RaFile(string name, string content = "")
 			: base(name)
 		{
+			float kb = Encoding.UTF8.GetByteCount(content) / 1024f;
+			Size = $"{(kb < 0.1f ? 0.1f : kb):0.0} KB";
+			Content = content;
 		}
+
+		public void SetContent(string content) => Content = content;
 	}
 
 	public abstract class RaFileSystemItemBase

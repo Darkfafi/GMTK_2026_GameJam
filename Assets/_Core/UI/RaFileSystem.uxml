@@ -15,6 +15,13 @@
         <!-- Contents of the current folder -->
         <ui:ScrollView name="ra-contents" class="ra-contents" />
 
+        <!-- File content reader (hidden until a file is opened; toolbar ← closes it) -->
+        <ui:VisualElement name="ra-file-content" class="fc">
+            <ui:ScrollView name="fc-scroll" class="fc-scroll">
+                <ui:Label name="fc-text" text="" class="fc-text" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+
         <!-- Status bar -->
         <ui:VisualElement name="ra-statusbar" class="ra-statusbar">
             <ui:Label name="ra-status-label" text="" class="ra-status-label" />

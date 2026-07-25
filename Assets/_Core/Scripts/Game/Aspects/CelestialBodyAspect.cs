@@ -20,6 +20,18 @@ namespace GMTK_2026
 			c.Provides.Add(EnvironmentTag.Pressure);
 		});
 
+		public static readonly CelestialBodyAspect IceDwarf = Build("Ice Dwarf", "Frozen, barren rock.", c =>
+		{
+			c.Provides.Add(EnvironmentTag.Cold);
+			c.Provides.Add(EnvironmentTag.Vacuum);
+		});
+
+		public static readonly CelestialBodyAspect OceanWorld = Build("Ocean World", "Completely submerged planet.", c =>
+		{
+			c.Provides.Add(EnvironmentTag.Water);
+			c.Provides.Add(EnvironmentTag.Pressure);
+		});
+
 		private static CelestialBodyAspect Build(string name, string description, Action<CelestialBodyAspect> configure)
 		{
 			CelestialBodyAspect body = new CelestialBodyAspect(name, description);

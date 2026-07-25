@@ -1,13 +1,13 @@
 :root {
-    --ra-bg: rgb(30, 32, 38);
-    --ra-panel: rgb(38, 41, 48);
-    --ra-toolbar: rgb(24, 26, 31);
-    --ra-border: rgb(15, 16, 20);
-    --ra-text: rgb(220, 223, 228);
-    --ra-text-dim: rgb(140, 146, 156);
-    --ra-accent: rgb(86, 156, 255);
-    --ra-row-hover: rgb(52, 56, 64);
-    --ra-row-selected: rgb(45, 74, 122);
+    --ra-bg: rgb(8, 12, 18);
+    --ra-panel: rgba(0, 0, 0, 0.15);
+    --ra-toolbar: rgba(0, 0, 0, 0.25);
+    --ra-border: rgb(26, 37, 53);
+    --ra-text: rgb(200, 214, 229);
+    --ra-text-dim: rgb(90, 111, 138);
+    --ra-accent: rgb(0, 255, 136);
+    --ra-row-hover: rgba(0, 255, 136, 0.045);
+    --ra-row-selected: rgba(0, 255, 136, 0.12);
 }
 
 .ra-window {
@@ -18,6 +18,16 @@
     border-width: 1px;
     border-color: var(--ra-border);
     overflow: hidden;
+}
+
+/* Monospace voice for the terminal (mockup: JetBrains Mono) */
+.ra-crumb,
+.ra-crumb-separator,
+.ra-entity__label,
+.ra-entity__size,
+.ra-status-label,
+.fc-text {
+    -unity-font-definition: url("../Fonts/JetBrainsMono-Regular.ttf");
 }
 
 /* -------- Toolbar (back button + breadcrumb) -------- */
@@ -71,11 +81,11 @@
 }
 
 .ra-crumb:hover {
-    color: var(--ra-text);
+    color: var(--ra-accent);
 }
 
 .ra-crumb--current {
-    color: var(--ra-text);
+    color: var(--ra-accent);
     -unity-font-style: bold;
 }
 
@@ -104,10 +114,12 @@
 .ra-entity {
     flex-direction: row;
     align-items: center;
-    height: 30px;
-    padding-left: 10px;
-    padding-right: 10px;
-    border-radius: 4px;
+    height: 32px;
+    padding-left: 13px;
+    padding-right: 13px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0);
     margin-left: 4px;
     margin-right: 4px;
     margin-top: 1px;
@@ -116,6 +128,7 @@
 
 .ra-entity:hover {
     background-color: var(--ra-row-hover);
+    border-color: rgba(0, 255, 136, 0.12);
 }
 
 .ra-entity--selected {
@@ -136,8 +149,40 @@
     -unity-text-align: middle-left;
 }
 
+.ra-entity__size {
+    font-size: 10px;
+    color: var(--ra-text-dim);
+    opacity: 0.55;
+    margin-left: 8px;
+}
+
+/* typed icon tints (mockup: folder = warning, file = info, image = pink) */
+.ra-entity__icon--folder { color: rgb(255, 159, 67); }
+.ra-entity__icon--file { color: rgb(0, 210, 255); }
+.ra-entity__icon--image { color: rgb(224, 86, 160); }
+
 .ra-entity--folder .ra-entity__label {
     -unity-font-style: bold;
+}
+
+/* -------- File content reader (fc) -------- */
+
+.fc {
+    display: none;
+    flex-grow: 1;
+    padding: 16px;
+    border-top-width: 1px;
+    border-top-color: var(--ra-border);
+}
+
+.fc-scroll {
+    flex-grow: 1;
+}
+
+.fc-text {
+    font-size: 12px;
+    color: var(--ra-text);
+    white-space: normal;
 }
 
 /* -------- Status bar -------- */

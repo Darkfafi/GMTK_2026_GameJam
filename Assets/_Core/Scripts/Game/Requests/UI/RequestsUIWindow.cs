@@ -19,6 +19,8 @@ namespace GMTK_2026
 
 		private readonly Dictionary<PilotRequestBase, RequestCardElement> _cards = new Dictionary<PilotRequestBase, RequestCardElement>();
 
+		private int _requestsCounter;
+
 		private void OnEnable()
 		{
 			VisualElement root = _document.rootVisualElement;
@@ -52,6 +54,7 @@ namespace GMTK_2026
 
 			_cards.Add(request, card);
 			_list.Add(card);
+			_requestsCounter++;
 
 			RefreshEmptyState();
 			RefreshCount();
@@ -81,6 +84,15 @@ namespace GMTK_2026
 			}
 		}
 
+		public void ShowResult(PilotRequestBase request, bool correct, string message)
+		{
+			if (_cards.TryGetValue(request, out RequestCardElement card))
+			{
+				card.ShowResult(correct, message);
+				card.SetInteractable(false);
+			}
+		}
+
 		private void OnCardApproved(RequestCardElement card) => RequestApprovedEvent?.Invoke(card.Request);
 		private void OnCardDenied(RequestCardElement card) => RequestDeniedEvent?.Invoke(card.Request);
 
@@ -88,7 +100,7 @@ namespace GMTK_2026
 		{
 			if (_count != null)
 			{
-				_count.text = _cards.Count == 1 ? "1 waiting" : $"{_cards.Count} waiting";
+				_count.text = _requestsCounter > 0 ? $"REQ-{_requestsCounter:0000}" : string.Empty;
 			}
 		}
 

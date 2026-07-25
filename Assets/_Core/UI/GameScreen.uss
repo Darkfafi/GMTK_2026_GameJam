@@ -1,219 +1,369 @@
-/* ---------------------------------------------------------------------------
-   Two-pane game screen: file system (left) + incoming requests (right).
-   Reuses the --ra-* palette declared in RaFileSystem.uss.
---------------------------------------------------------------------------- */
+:root {
+    --bg: rgb(6, 10, 16);
+    --bg-secondary: rgb(12, 18, 25);
+    --card: rgb(17, 24, 32);
+    --card-hover: rgb(22, 31, 43);
+    --border: rgb(26, 37, 53);
+    --fg: rgb(200, 214, 229);
+    --fg-muted: rgb(90, 111, 138);
+    --accent: rgb(0, 255, 136);
+    --danger: rgb(255, 71, 87);
+    --warning: rgb(255, 159, 67);
+    --info: rgb(0, 210, 255);
+    --terminal-bg: rgb(8, 12, 18);
 
-.game-screen {
+    /* remap the file-system / request / tag component variables */
+    --ra-bg: var(--terminal-bg);
+    --ra-panel: rgba(0, 0, 0, 0.15);
+    --ra-toolbar: rgba(0, 0, 0, 0.25);
+    --ra-border: var(--border);
+    --ra-text: var(--fg);
+    --ra-text-dim: var(--fg-muted);
+    --ra-accent: var(--accent);
+    --ra-row-hover: rgba(0, 255, 136, 0.05);
+    --ra-row-selected: rgba(0, 255, 136, 0.12);
+}
+
+.app {
     flex-grow: 1;
-    flex-direction: row;
-    background-color: var(--ra-bg);
+    background-color: var(--bg);
+    -unity-font-definition: url("../Fonts/SpaceGrotesk-Regular.ttf");
 }
 
-.game-screen__pane {
-    flex-grow: 1;
-    flex-basis: 0;          /* equal halves regardless of content */
-    overflow: hidden;
+/* Monospace voice for terminal/data text (mockup: JetBrains Mono) */
+.terminal-title,
+.stat-value,
+.sb-text,
+.log-t,
+.log-m,
+.req-count,
+.cd-num,
+.entity-view__row-val,
+.result-bar {
+    -unity-font-definition: url("../Fonts/JetBrainsMono-Regular.ttf");
 }
 
-.game-screen__pane--right {
-    border-left-width: 2px;
-    border-left-color: var(--ra-border);
+/* ---- effect layers (populated in C# via Painter2D) ---- */
+.fx-starfield {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+}
+.fx-scanlines {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
 }
 
-/* A TemplateContainer (<ui:Instance>) has no flex-grow by default — make it fill the pane. */
-.game-screen__fill {
-    flex-grow: 1;
-}
-
-/* -------- Requests panel -------- */
-
-.req-window {
-    flex-grow: 1;
-    background-color: var(--ra-bg);
-}
-
-.req-header {
+/* ========================= Top bar ========================= */
+.topbar {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    height: 34px;
-    padding-left: 10px;
-    padding-right: 10px;
-    background-color: var(--ra-toolbar);
+    padding-left: 18px;
+    padding-right: 18px;
+    height: 44px;
+    background-color: rgba(12, 18, 25, 0.92);
     border-bottom-width: 1px;
-    border-bottom-color: var(--ra-border);
+    border-bottom-color: var(--border);
 }
-
-.req-title {
-    color: var(--ra-text);
-    font-size: 14px;
-    -unity-font-style: bold;
-}
-
-.req-count {
-    color: var(--ra-text-dim);
-    font-size: 12px;
-}
-
-.req-list {
-    flex-grow: 1;
-    background-color: var(--ra-panel);
-}
-
-.req-empty-label {
+.topbar-left { flex-direction: row; align-items: center; }
+.station-logo {
+    width: 26px; height: 26px;
+    border-width: 2px; border-color: var(--accent); border-radius: 13px;
     -unity-text-align: middle-center;
-    color: var(--ra-text-dim);
-    font-size: 13px;
-    padding-top: 24px;
+    font-size: 11px; color: var(--accent);
+    margin-right: 10px;
 }
-
-/* -------- A single request card -------- */
-
-.req-card {
-    background-color: var(--ra-bg);
-    border-width: 1px;
-    border-color: var(--ra-border);
-    border-radius: 6px;
-    margin: 8px;
-    padding: 10px;
+.station-name {
+    font-size: 14px; -unity-font-style: bold;
+    letter-spacing: 2px; color: var(--accent);
+    margin: 0; padding: 0;
 }
-
-.req-card__title {
-    color: var(--ra-text);
-    font-size: 14px;
-    -unity-font-style: bold;
-    margin-bottom: 2px;
+.station-sub {
+    font-size: 8px; color: var(--fg-muted); letter-spacing: 2px;
+    margin: 0; padding: 0; margin-top: -1px;
 }
+.topbar-stats { flex-direction: row; align-items: center; }
+.stat { align-items: center; margin-left: 20px; }
+.stat-value { font-size: 18px; -unity-font-style: bold; color: var(--accent); }
+.stat-value--danger { color: var(--danger); }
 
-.req-card__desc {
-    color: var(--ra-text-dim);
-    font-size: 12px;
-    white-space: normal;      /* wrap long descriptions */
-    margin-bottom: 8px;
+/* ========================= Main split ========================= */
+.main-content { flex-grow: 1; flex-direction: row; }
+
+.game-screen__fill { flex-grow: 1; }
+
+/* ---- Left: terminal ---- */
+.terminal-panel {
+    width: 42%; min-width: 320px;
+    border-right-width: 1px; border-right-color: var(--border);
+    background-color: var(--terminal-bg);
 }
-
-.req-card__timerbar {
-    height: 4px;
-    border-radius: 2px;
-    background-color: var(--ra-toolbar);
-    margin-bottom: 8px;
-    overflow: hidden;
-}
-
-.req-card__timerfill {
-    height: 4px;
-    width: 100%;
-    background-color: var(--ra-accent);
-}
-
-.req-card__actions {
-    flex-direction: row;
-    justify-content: flex-end;
-}
-
-.req-btn {
-    height: 26px;
-    padding-left: 14px;
-    padding-right: 14px;
-    margin-left: 6px;
+.terminal-panel .ra-window {
     border-width: 0;
-    border-radius: 4px;
-    color: var(--ra-text);
-    font-size: 12px;
+    background-color: transparent;
+}
+.terminal-header {
+    flex-direction: row; align-items: center;
+    height: 34px; padding-left: 16px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-bottom-width: 1px; border-bottom-color: var(--border);
+}
+.td { width: 10px; height: 10px; border-radius: 5px; margin-right: 6px; flex-shrink: 0; align-self: center; }
+.td--r { background-color: rgb(255, 95, 87); }
+.td--y { background-color: rgb(255, 189, 46); }
+.td--g { background-color: rgb(40, 201, 64); }
+.terminal-title {
+    font-size: 11px; color: var(--fg-muted); letter-spacing: 1px; margin-left: 8px;
 }
 
-.req-btn--approve {
-    background-color: rgb(46, 122, 74);
+/* ---- Right: requests ---- */
+.request-panel {
+    flex-grow: 1;
+    background-color: rgba(6, 10, 16, 0.5);
+}
+.req-header {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    height: 40px; padding-left: 24px; padding-right: 24px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-bottom-width: 1px; border-bottom-color: var(--border);
+}
+.req-header-title {
+    font-size: 10px; letter-spacing: 3px; color: var(--fg-muted);
+}
+.req-count { font-size: 11px; color: var(--fg-muted); }
+.req-list { flex-grow: 1; padding-left: 12px; padding-right: 12px; }
+.req-empty-label {
+    -unity-text-align: middle-center; color: var(--fg-muted);
+    font-size: 13px; padding-top: 24px;
 }
 
-.req-btn--approve:hover {
-    background-color: rgb(58, 148, 92);
+/* ========================= Request card ========================= */
+.req-card {
+    background-color: var(--card);
+    border-width: 1px; border-color: var(--border); border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px; margin-bottom: 4px;
+    /* accent top edge (stand-in for the mockup's animated shimmer bar) */
+    border-top-width: 3px; border-top-color: var(--accent);
+}
+.req-card__titlerow {
+    flex-direction: row; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 10px;
+}
+.req-card__title { font-size: 18px; -unity-font-style: bold; color: rgb(255, 255, 255); flex-grow: 1; }
+.req-card__badge {
+    font-size: 9px; letter-spacing: 2px; color: var(--accent);
+    background-color: rgba(0, 255, 136, 0.12);
+    border-width: 1px; border-color: rgba(0, 255, 136, 0.2); border-radius: 4px;
+    padding: 4px 10px; margin-left: 12px;
+}
+.req-card__desc {
+    font-size: 13px; color: var(--fg-muted); white-space: normal; margin-bottom: 16px;
 }
 
-.req-btn--deny {
-    background-color: rgb(150, 60, 60);
+/* countdown box */
+.cd-box {
+    flex-direction: row; align-items: center;
+    padding: 12px 14px; margin-bottom: 16px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-width: 1px; border-color: var(--border); border-radius: 8px;
 }
-
-.req-btn--deny:hover {
-    background-color: rgb(182, 74, 74);
+.cd-ring { width: 52px; height: 52px; margin-right: 14px; }
+.cd-num {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    -unity-text-align: middle-center; font-size: 16px; -unity-font-style: bold;
+    color: rgb(255, 255, 255);
 }
+.cd-info { flex-grow: 1; }
+.cd-label { font-size: 10px; letter-spacing: 2px; color: var(--fg-muted); margin-bottom: 2px; }
+.cd-status { font-size: 12px; color: var(--accent); }
+.cd-status--warn { color: var(--warning); }
+.cd-status--crit { color: var(--danger); }
 
-/* -------- Request body: type-specific views -------- */
-
-.req-card__body {
-    margin-bottom: 8px;
-}
-
-/* LandingRequestView stacks its three entity panels vertically. */
-.request-view {
-    flex-shrink: 0;
-}
-
-.request-view--landing {
-    flex-direction: column;
-}
-
-/* -------- Entity sub-view (pilot / planet / ship) -------- */
+/* detail cards (the request body — pilot / planet / ship) */
+.req-card__body { margin-bottom: 16px; }
+.request-view--landing { flex-direction: row; flex-wrap: wrap; }
 
 .entity-view {
-    background-color: var(--ra-panel);
-    border-width: 1px;
-    border-color: var(--ra-border);
-    border-radius: 4px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    padding-left: 8px;
-    padding-right: 8px;
-    margin-bottom: 6px;
+    flex-grow: 1; flex-basis: 30%; min-width: 130px;
+    background-color: rgba(0, 0, 0, 0.28);
+    border-width: 1px; border-color: var(--border); border-radius: 8px;
+    padding: 12px; margin-right: 8px; margin-bottom: 8px;
 }
-
+.entity-view__head {
+    flex-direction: row; align-items: center;
+    padding-bottom: 7px; margin-bottom: 8px;
+    border-bottom-width: 1px; border-bottom-color: var(--border);
+}
+.entity-view__ico {
+    width: 26px; height: 26px; border-radius: 5px;
+    -unity-text-align: middle-center; font-size: 13px;
+    margin-right: 7px;
+}
+.entity-view__ico--pilot { background-color: rgba(0, 210, 255, 0.12); color: var(--info); }
+.entity-view__ico--planet { background-color: rgba(255, 159, 67, 0.12); color: var(--warning); }
+.entity-view__ico--ship { background-color: rgba(0, 255, 136, 0.12); color: var(--accent); }
 .entity-view__kind {
-    color: var(--ra-text-dim);
-    font-size: 10px;
-    -unity-font-style: bold;
-    letter-spacing: 1px;
+    font-size: 10px; letter-spacing: 2px; color: var(--fg-muted);
 }
-
-.entity-view__name {
-    color: var(--ra-text);
-    font-size: 14px;
-    -unity-font-style: bold;
-    margin-bottom: 4px;
-}
-
-.entity-view__row {
-    flex-direction: row;
-    align-items: flex-start;
-    margin-top: 3px;
-}
-
-.entity-view__row-label {
-    color: var(--ra-text-dim);
-    font-size: 11px;
-    width: 82px;
-    flex-shrink: 0;
-    padding-top: 2px;
-}
-
-.entity-view__chips {
-    flex-direction: row;
-    flex-wrap: wrap;
-    flex-grow: 1;
-}
-
-/* -------- Tag chip (pill) -------- */
-
+.entity-view__row { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 3px; }
+.entity-view__row-key { font-size: 11px; color: var(--fg-muted); }
+.entity-view__row-val { font-size: 11px; color: rgb(255, 255, 255); -unity-font-style: bold; }
 .tag-chip {
-    color: var(--ra-text);
-    font-size: 11px;
-    background-color: var(--ra-toolbar);
-    border-width: 1px;
-    border-color: var(--ra-border);
-    border-radius: 9px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    padding-left: 8px;
-    padding-right: 8px;
-    margin-right: 4px;
-    margin-bottom: 4px;
+    font-size: 11px; color: var(--fg);
+    background-color: rgba(0, 0, 0, 0.35);
+    border-width: 1px; border-color: var(--border); border-radius: 9px;
+    padding: 1px 8px; margin-right: 4px; margin-bottom: 4px;
 }
+
+/* action buttons */
+.req-card__actions { flex-direction: row; }
+.req-btn {
+    flex-grow: 1; height: 42px; margin-right: 10px;
+    border-width: 1px; border-radius: 8px;
+    font-size: 13px; -unity-font-style: bold; letter-spacing: 1px;
+    transition-duration: 0.15s;
+}
+.req-btn--approve {
+    color: var(--accent);
+    background-color: rgba(0, 255, 136, 0.1);
+    border-color: rgba(0, 255, 136, 0.28);
+}
+.req-btn--approve:hover { background-color: rgba(0, 255, 136, 0.22); border-color: var(--accent); }
+.req-btn--deny {
+    color: var(--danger);
+    background-color: rgba(255, 71, 87, 0.1);
+    border-color: rgba(255, 71, 87, 0.28);
+    margin-right: 0;
+}
+.req-btn--deny:hover { background-color: rgba(255, 71, 87, 0.22); border-color: var(--danger); }
+.req-btn:disabled { opacity: 0.4; }
+
+/* result feedback bar (shown after a decision) */
+.result-bar {
+    margin-top: 14px; padding: 12px 16px;
+    border-radius: 8px; border-width: 1px;
+    font-size: 12px; white-space: normal;
+}
+.result-bar--ok {
+    background-color: rgba(0, 255, 136, 0.08);
+    border-color: rgba(0, 255, 136, 0.2);
+    color: var(--accent);
+}
+.result-bar--err {
+    background-color: rgba(255, 71, 87, 0.08);
+    border-color: rgba(255, 71, 87, 0.2);
+    color: var(--danger);
+}
+
+/* ========================= Operation Log ========================= */
+.log-sec {
+    height: 210px;
+    border-top-width: 1px; border-top-color: var(--border);
+    background-color: rgba(0, 0, 0, 0.3);
+}
+.log-head {
+    height: 24px; padding-left: 24px; -unity-text-align: middle-left;
+    font-size: 9px; letter-spacing: 3px; color: var(--fg-muted);
+    border-bottom-width: 1px; border-bottom-color: var(--border);
+}
+.log-body { flex-grow: 1; padding-left: 24px; padding-right: 24px; padding-top: 4px; padding-bottom: 4px; }
+.log-entry {
+    flex-direction: row; margin-top: 1px; margin-bottom: 1px;
+    opacity: 0;
+    translate: -8px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+}
+.log-entry--in { opacity: 1; translate: 0 0; }
+.log-t { font-size: 11px; color: var(--fg-muted); margin-right: 8px; flex-shrink: 0; }
+.log-m { font-size: 11px; color: var(--fg); white-space: normal; flex-grow: 1; }
+.log-m--accent { color: var(--accent); }
+.log-m--danger { color: var(--danger); }
+.log-m--warning { color: var(--warning); }
+.log-m--info { color: var(--info); }
+
+/* ========================= Scrollbars (game-styled, thin & dark) ========================= */
+.unity-scroller--vertical {
+    width: 8px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+.unity-scroller--horizontal {
+    height: 8px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+.unity-scroller--vertical > .unity-scroller__slider {
+    margin-top: 0; margin-bottom: 0; width: 8px;
+}
+.unity-scroller--horizontal > .unity-scroller__slider {
+    margin-left: 0; margin-right: 0; height: 8px;
+}
+.unity-base-slider__tracker {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+.unity-base-slider__dragger {
+    background-color: var(--border);
+    border-width: 0;
+    border-radius: 3px;
+}
+.unity-scroller--vertical .unity-base-slider__dragger { width: 6px; left: 1px; }
+.unity-scroller--horizontal .unity-base-slider__dragger { height: 6px; top: 1px; }
+.unity-base-slider__dragger:hover {
+    background-color: rgba(0, 255, 136, 0.35);
+}
+
+/* ========================= Toasts ========================= */
+.toast-box {
+    position: absolute;
+    top: 52px; right: 20px;
+}
+.toast {
+    padding: 10px 18px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    border-width: 1px;
+    font-size: 12px;
+    opacity: 0;
+    translate: 30px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+.toast--in { opacity: 1; translate: 0 0; }
+.toast--out { opacity: 0; translate: 0 -8px; }
+.toast--ok {
+    background-color: rgba(0, 255, 136, 0.13);
+    border-color: rgba(0, 255, 136, 0.28);
+    color: var(--accent);
+}
+.toast--err {
+    background-color: rgba(255, 71, 87, 0.13);
+    border-color: rgba(255, 71, 87, 0.28);
+    color: var(--danger);
+}
+.toast--nfo {
+    background-color: rgba(0, 210, 255, 0.13);
+    border-color: rgba(0, 210, 255, 0.28);
+    color: var(--info);
+}
+
+/* ========================= Status bar ========================= */
+.statusbar {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    height: 24px; padding-left: 24px; padding-right: 24px;
+    background-color: rgba(12, 18, 25, 0.95);
+    border-top-width: 1px; border-top-color: var(--border);
+}
+.sb-l, .sb-r { flex-direction: row; align-items: center; }
+.sb-l > Label, .sb-r > Label { font-size: 10px; color: var(--fg-muted); margin-right: 18px; }
+.sb-ind { flex-direction: row; align-items: center; margin-right: 18px; }
+.sb-dot { width: 5px; height: 5px; border-radius: 3px; background-color: var(--accent); margin-right: 5px; }
+.sb-text { font-size: 10px; color: var(--fg-muted); }

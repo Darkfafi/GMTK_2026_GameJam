@@ -20,6 +20,24 @@ namespace GMTK_2026
 			get; private set;
 		}
 
+		[field: SerializeField]
+		public LogController LogController
+		{
+			get; private set;
+		}
+
+		[field: SerializeField]
+		public SessionStatsController StatsController
+		{
+			get; private set;
+		}
+
+		[field: SerializeField]
+		public ToastUIWindow ToastWindow
+		{
+			get; private set;
+		}
+
 		private RaGOFiniteStateMachine _fsm = null;
 
 		protected void Awake()

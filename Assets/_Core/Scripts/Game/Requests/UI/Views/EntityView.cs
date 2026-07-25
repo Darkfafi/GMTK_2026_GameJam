@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.UIElements;
 
 namespace GMTK_2026
@@ -8,35 +6,37 @@ namespace GMTK_2026
 	{
 		public const string UssClass = "entity-view";
 
-		private readonly Label _name;
 		private readonly VisualElement _body;
 
-		protected EntityView(string kind)
+		protected EntityView(string kind, string icon, string iconModifier)
 		{
 			AddToClassList(UssClass);
+
+			VisualElement head = new VisualElement { pickingMode = PickingMode.Ignore };
+			head.AddToClassList("entity-view__head");
+
+			Label iconLabel = new Label(icon) { pickingMode = PickingMode.Ignore };
+			iconLabel.AddToClassList("entity-view__ico");
+			iconLabel.AddToClassList(iconModifier);
 
 			Label kindLabel = new Label(kind) { pickingMode = PickingMode.Ignore };
 			kindLabel.AddToClassList("entity-view__kind");
 
-			_name = new Label { pickingMode = PickingMode.Ignore };
-			_name.AddToClassList("entity-view__name");
+			head.Add(iconLabel);
+			head.Add(kindLabel);
 
 			_body = new VisualElement { pickingMode = PickingMode.Ignore };
 			_body.AddToClassList("entity-view__body");
 
-			Add(kindLabel);
-			Add(_name);
+			Add(head);
 			Add(_body);
 		}
 
-		protected void SetDisplayName(string name) => _name.text = string.IsNullOrEmpty(name) ? "—" : name;
-
 		protected void ClearBody() => _body.Clear();
 
-		protected void AddChips(string label, IEnumerable<string> values)
+		protected void AddRow(string key, string value)
 		{
-			List<string> items = values?.Where(v => !string.IsNullOrEmpty(v)).ToList() ?? new List<string>();
-			if (items.Count == 0)
+			if (string.IsNullOrEmpty(value))
 			{
 				return;
 			}
@@ -44,76 +44,83 @@ namespace GMTK_2026
 			VisualElement row = new VisualElement { pickingMode = PickingMode.Ignore };
 			row.AddToClassList("entity-view__row");
 
-			Label rowLabel = new Label(label) { pickingMode = PickingMode.Ignore };
-			rowLabel.AddToClassList("entity-view__row-label");
-			row.Add(rowLabel);
+			Label keyLabel = new Label(key) { pickingMode = PickingMode.Ignore };
+			keyLabel.AddToClassList("entity-view__row-key");
 
-			VisualElement chips = new VisualElement { pickingMode = PickingMode.Ignore };
-			chips.AddToClassList("entity-view__chips");
-			foreach (string item in items)
-			{
-				Label chip = new Label(item) { pickingMode = PickingMode.Ignore };
-				chip.AddToClassList("tag-chip");
-				chips.Add(chip);
-			}
-			row.Add(chips);
+			Label valueLabel = new Label(value) { pickingMode = PickingMode.Ignore };
+			valueLabel.AddToClassList("entity-view__row-val");
 
+			row.Add(keyLabel);
+			row.Add(valueLabel);
 			_body.Add(row);
+		}
+
+		protected static T FindAspect<T>(GameEntityBase entity) where T : EntityAspect
+		{
+			if (entity == null)
+			{
+				return null;
+			}
+
+			for (int i = 0; i < entity.Aspects.Count; i++)
+			{
+				if (entity.Aspects[i] is T match)
+				{
+					return match;
+				}
+			}
+			return null;
 		}
 	}
 
 	public sealed class CreatureView : EntityView
 	{
-		public CreatureView() : base("Pilot") { }
+		public CreatureView() : base("PILOT", "🧑", "entity-view__ico--pilot") { }
 
 		public void Bind(CreatureEntity creature)
 		{
-			SetDisplayName(creature?.Name);
 			ClearBody();
 			if (creature == null)
 			{
 				return;
 			}
 
-			AddChips("Is", creature.Aspects.Select(a => a.Name));
-			AddChips("Needs", creature.Profile.Requires.Select(t => t.Name));
-			AddChips("Avoids", creature.Profile.Intolerances.Select(t => t.Name));
+			AddRow("Name", creature.Name);
+			AddRow("Species", FindAspect<SpeciesAspect>(creature)?.Name);
+			AddRow("Occupation", FindAspect<OccupationAspect>(creature)?.Name);
 		}
 	}
 
 	public sealed class PlanetView : EntityView
 	{
-		public PlanetView() : base("Planet") { }
+		public PlanetView() : base("PLANET", "🪐", "entity-view__ico--planet") { }
 
 		public void Bind(PlanetEntity planet)
 		{
-			SetDisplayName(planet?.Name);
 			ClearBody();
 			if (planet == null)
 			{
 				return;
 			}
 
-			AddChips("Is", planet.Aspects.Select(a => a.Name));
-			AddChips("Provides", planet.Profile.Provides.Select(t => t.Name));
+			AddRow("Name", planet.Name);
+			AddRow("Body", FindAspect<CelestialBodyAspect>(planet)?.Name);
 		}
 	}
 
 	public sealed class ShipView : EntityView
 	{
-		public ShipView() : base("Ship") { }
+		public ShipView() : base("SHIP", "🚀", "entity-view__ico--ship") { }
 
 		public void Bind(ShipEntity ship)
 		{
-			SetDisplayName(ship?.Name);
 			ClearBody();
 			if (ship == null)
 			{
 				return;
 			}
 
-			AddChips("Is", ship.Aspects.Select(a => a.Name));
-			AddChips("Life Support", ship.LifeSupport.Select(t => t.Name));
+			AddRow("Name", ship.Name);
 		}
 	}
 }
