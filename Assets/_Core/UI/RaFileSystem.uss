@@ -1,0 +1,159 @@
+:root {
+    --ra-bg: rgb(30, 32, 38);
+    --ra-panel: rgb(38, 41, 48);
+    --ra-toolbar: rgb(24, 26, 31);
+    --ra-border: rgb(15, 16, 20);
+    --ra-text: rgb(220, 223, 228);
+    --ra-text-dim: rgb(140, 146, 156);
+    --ra-accent: rgb(86, 156, 255);
+    --ra-row-hover: rgb(52, 56, 64);
+    --ra-row-selected: rgb(45, 74, 122);
+}
+
+.ra-window {
+    flex-grow: 1;
+    min-width: 320px;
+    min-height: 240px;
+    background-color: var(--ra-bg);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* -------- Toolbar (back button + breadcrumb) -------- */
+
+.ra-toolbar {
+    flex-direction: row;
+    align-items: center;
+    height: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+    background-color: var(--ra-toolbar);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ra-border);
+}
+
+.ra-back-button {
+    width: 26px;
+    height: 24px;
+    margin-right: 6px;
+    -unity-text-align: middle-center;
+    font-size: 15px;
+    color: var(--ra-text);
+    background-color: rgba(255, 255, 255, 0.04);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.ra-back-button:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+}
+
+.ra-back-button:disabled {
+    color: var(--ra-text-dim);
+    opacity: 0.4;
+}
+
+.ra-breadcrumb {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.ra-crumb {
+    color: var(--ra-text-dim);
+    font-size: 13px;
+    padding-left: 4px;
+    padding-right: 4px;
+    background-color: transparent;
+    border-width: 0;
+}
+
+.ra-crumb:hover {
+    color: var(--ra-text);
+}
+
+.ra-crumb--current {
+    color: var(--ra-text);
+    -unity-font-style: bold;
+}
+
+.ra-crumb-separator {
+    color: var(--ra-text-dim);
+    font-size: 12px;
+    -unity-text-align: middle-center;
+}
+
+/* -------- Contents list -------- */
+
+.ra-contents {
+    flex-grow: 1;
+    background-color: var(--ra-panel);
+}
+
+.ra-empty-label {
+    -unity-text-align: middle-center;
+    color: var(--ra-text-dim);
+    font-size: 13px;
+    padding-top: 24px;
+}
+
+/* -------- A single entity row -------- */
+
+.ra-entity {
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 4px;
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.ra-entity:hover {
+    background-color: var(--ra-row-hover);
+}
+
+.ra-entity--selected {
+    background-color: var(--ra-row-selected);
+}
+
+.ra-entity__icon {
+    width: 18px;
+    -unity-text-align: middle-center;
+    font-size: 15px;
+    margin-right: 8px;
+}
+
+.ra-entity__label {
+    flex-grow: 1;
+    color: var(--ra-text);
+    font-size: 13px;
+    -unity-text-align: middle-left;
+}
+
+.ra-entity--folder .ra-entity__label {
+    -unity-font-style: bold;
+}
+
+/* -------- Status bar -------- */
+
+.ra-statusbar {
+    height: 22px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 10px;
+    background-color: var(--ra-toolbar);
+    border-top-width: 1px;
+    border-top-color: var(--ra-border);
+}
+
+.ra-status-label {
+    color: var(--ra-text-dim);
+    font-size: 11px;
+}

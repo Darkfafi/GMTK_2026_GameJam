@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+         editor-extension-mode="False">
+    <Style src="RaFileSystem.uss" />
+
+    <!-- Root window -->
+    <ui:VisualElement name="ra-window" class="ra-window">
+
+        <!-- Toolbar -->
+        <ui:VisualElement name="ra-toolbar" class="ra-toolbar">
+            <ui:Button name="ra-back-button" text="←" class="ra-back-button" />
+            <ui:VisualElement name="ra-breadcrumb" class="ra-breadcrumb" />
+        </ui:VisualElement>
+
+        <!-- Contents of the current folder -->
+        <ui:ScrollView name="ra-contents" class="ra-contents" />
+
+        <!-- Status bar -->
+        <ui:VisualElement name="ra-statusbar" class="ra-statusbar">
+            <ui:Label name="ra-status-label" text="" class="ra-status-label" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>
