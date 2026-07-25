@@ -4,10 +4,16 @@ namespace GMTK_2026
 {
 	public abstract class GameEntityBase
 	{
+		private readonly List<EntityAspect> _aspects = new List<EntityAspect>();
+
 		public string Name
 		{
 			get; private set;
 		}
+
+		public TagProfile Profile { get; } = new TagProfile();
+
+		public IReadOnlyList<EntityAspect> Aspects => _aspects;
 
 		protected GameEntityBase(string name)
 		{
@@ -18,23 +24,34 @@ namespace GMTK_2026
 		{
 			Name = name;
 		}
+
+		public void ApplyAspect(EntityAspect aspect)
+		{
+			if (aspect == null)
+			{
+				return;
+			}
+
+			_aspects.Add(aspect);
+			aspect.ApplyTo(Profile);
+		}
 	}
 
 	public class PlanetEntity : GameEntityBase
 	{
-		public HashSet<TagBase> Provides { get; } = new HashSet<TagBase>();
+		public HashSet<TagBase> Provides => Profile.Provides;
 
 		public PlanetEntity(string name, params TagBase[] provides)
 			: base(name)
 		{
-			Provides.UnionWith(provides);
+			Profile.Provides.UnionWith(provides);
 		}
 	}
 
 	public class CreatureEntity : GameEntityBase
 	{
-		public HashSet<TagBase> Requires { get; } = new HashSet<TagBase>();
-		public HashSet<TagBase> Intolerances { get; } = new HashSet<TagBase>();
+		public HashSet<TagBase> Requires => Profile.Requires;
+		public HashSet<TagBase> Intolerances => Profile.Intolerances;
 
 		public CreatureEntity(string name)
 			: base(name)
@@ -44,12 +61,12 @@ namespace GMTK_2026
 
 	public class ShipEntity : GameEntityBase
 	{
-		public HashSet<TagBase> LifeSupport { get; } = new HashSet<TagBase>();
+		public HashSet<TagBase> LifeSupport => Profile.Provides;
 
 		public ShipEntity(string name, params TagBase[] lifeSupport)
 			: base(name)
 		{
-			LifeSupport.UnionWith(lifeSupport);
+			Profile.Provides.UnionWith(lifeSupport);
 		}
 	}
 }
