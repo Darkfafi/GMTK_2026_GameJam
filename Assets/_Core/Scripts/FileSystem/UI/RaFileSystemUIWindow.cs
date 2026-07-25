@@ -5,12 +5,12 @@ using UnityEngine.UIElements;
 
 namespace GMTK_2026
 {
-	[RequireComponent(typeof(UIDocument))]
-	public class RaFileSystemWindow : MonoBehaviour
+	public class RaFileSystemUIWindow : MonoBehaviour
 	{
 		public event Action<RaFileSystemItemBase> FileOpenedEvent;
 		public event Action<RaFolder> FolderChangedEvent;
 
+		[SerializeField]
 		private UIDocument _document;
 
 		private Button _backButton;
@@ -27,7 +27,6 @@ namespace GMTK_2026
 
 		private void OnEnable()
 		{
-			_document = GetComponent<UIDocument>();
 			VisualElement root = _document.rootVisualElement;
 
 			_backButton = root.Q<Button>("ra-back-button");

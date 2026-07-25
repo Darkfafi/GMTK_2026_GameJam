@@ -36,37 +36,4 @@ namespace GMTK_2026
 			aspect.ApplyTo(Profile);
 		}
 	}
-
-	public class PlanetEntity : GameEntityBase
-	{
-		public HashSet<TagBase> Provides => Profile.Provides;
-
-		public PlanetEntity(string name, params TagBase[] provides)
-			: base(name)
-		{
-			Profile.Provides.UnionWith(provides);
-		}
-	}
-
-	public class CreatureEntity : GameEntityBase
-	{
-		public HashSet<TagBase> Requires => Profile.Requires;
-		public HashSet<TagBase> Intolerances => Profile.Intolerances;
-
-		public CreatureEntity(string name)
-			: base(name)
-		{
-		}
-	}
-
-	public class ShipEntity : GameEntityBase
-	{
-		public HashSet<TagBase> LifeSupport => Profile.Provides;
-
-		public ShipEntity(string name, params TagBase[] lifeSupport)
-			: base(name)
-		{
-			Profile.Provides.UnionWith(lifeSupport);
-		}
-	}
 }

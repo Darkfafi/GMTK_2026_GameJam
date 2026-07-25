@@ -137,3 +137,83 @@
 .req-btn--deny:hover {
     background-color: rgb(182, 74, 74);
 }
+
+/* -------- Request body: type-specific views -------- */
+
+.req-card__body {
+    margin-bottom: 8px;
+}
+
+/* LandingRequestView stacks its three entity panels vertically. */
+.request-view {
+    flex-shrink: 0;
+}
+
+.request-view--landing {
+    flex-direction: column;
+}
+
+/* -------- Entity sub-view (pilot / planet / ship) -------- */
+
+.entity-view {
+    background-color: var(--ra-panel);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 4px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-bottom: 6px;
+}
+
+.entity-view__kind {
+    color: var(--ra-text-dim);
+    font-size: 10px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.entity-view__name {
+    color: var(--ra-text);
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+}
+
+.entity-view__row {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-top: 3px;
+}
+
+.entity-view__row-label {
+    color: var(--ra-text-dim);
+    font-size: 11px;
+    width: 82px;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.entity-view__chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+/* -------- Tag chip (pill) -------- */
+
+.tag-chip {
+    color: var(--ra-text);
+    font-size: 11px;
+    background-color: var(--ra-toolbar);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 9px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}

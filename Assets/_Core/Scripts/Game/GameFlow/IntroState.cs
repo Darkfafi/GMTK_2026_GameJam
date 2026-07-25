@@ -1,14 +1,10 @@
-using UnityEngine;
-
 namespace GMTK_2026
 {
-	[RequireComponent(typeof(RaFileSystemWindow))]
-	public class RaFileSystemDemo : MonoBehaviour
+	public class IntroState : GameSceneStateBase
 	{
-		private void Start()
+		protected override void OnInit()
 		{
-			var window = GetComponent<RaFileSystemWindow>();
-
+			// Create World
 			var root = new RaFolder("Home",
 				new RaFolder("Documents",
 					new RaFile("design_notes.txt"),
@@ -24,8 +20,22 @@ namespace GMTK_2026
 				new RaFile("readme.md")
 			);
 
-			window.FileOpenedEvent += e => Debug.Log($"Opened file: {e.Name}");
-			window.SetRootFolder(root);
+			Dependency.FileSystemController.SetData(root);
+		}
+
+		protected override void OnDeinit()
+		{
+
+		}
+
+		protected override void OnEnter()
+		{
+			FSM_GoToNextState();
+		}
+
+		protected override void OnExit(bool isSwitch)
+		{
+
 		}
 	}
 }

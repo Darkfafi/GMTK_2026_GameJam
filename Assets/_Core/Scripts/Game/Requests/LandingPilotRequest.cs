@@ -10,8 +10,8 @@ namespace GMTK_2026
 		public PlanetEntity Target => GetDependency<PlanetEntity>(DependencyKeys.Target);
 		public ShipEntity Ship => GetDependency<ShipEntity>(DependencyKeys.Ship);
 
-		public LandingPilotRequest(CreatureEntity pilot, PlanetEntity target, ShipEntity ship)
-			: base(pilot)
+		public LandingPilotRequest(CreatureEntity pilot, PlanetEntity target, ShipEntity ship, float timeLimit = 20f)
+			: base(pilot, timeLimit)
 		{
 			SetDependency(DependencyKeys.Target, target);
 			SetDependency(DependencyKeys.Ship, ship);

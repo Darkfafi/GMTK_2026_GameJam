@@ -15,9 +15,45 @@ namespace GMTK_2026
 
 		public CreatureEntity Pilot => GetDependency<CreatureEntity>(DependencyKeys.Pilot);
 
-		protected PilotRequestBase(CreatureEntity pilot)
+		public float TimeLimit { get; }
+		public float TimeRemaining { get; private set; }
+
+		public float TimeNormalized
+		{
+			get
+			{
+				if (TimeLimit <= 0f)
+				{
+					return 0f;
+				}
+				float fraction = TimeRemaining / TimeLimit;
+				return fraction < 0f ? 0f : (fraction > 1f ? 1f : fraction);
+			}
+		}
+
+		public bool IsExpired => TimeRemaining <= 0f;
+
+		protected PilotRequestBase(CreatureEntity pilot, float timeLimit = 20f)
 		{
 			SetDependency(DependencyKeys.Pilot, pilot);
+			TimeLimit = timeLimit;
+			TimeRemaining = timeLimit;
+		}
+
+		public bool TickTime(float deltaTime)
+		{
+			if (TimeRemaining <= 0f)
+			{
+				return false;
+			}
+
+			TimeRemaining -= deltaTime;
+			if (TimeRemaining <= 0f)
+			{
+				TimeRemaining = 0f;
+				return true;
+			}
+			return false;
 		}
 
 		protected void SetDependency(string key, GameEntityBase entity)

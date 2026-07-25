@@ -156,6 +156,20 @@
       },
       "url": "https://packages.unity.com"
     },
+    "rasofiagames.radataholder": {
+      "version": "https://github.com/Darkfafi/RaDataHolder_UnityPackage.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "714f9229f1c8332bf70754fd88bcd680efd8402e"
+    },
+    "rasofiagames.rafsm": {
+      "version": "https://github.com/Darkfafi/RaFSM_UnityPackage.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "1418b120e8485966bae5754db09e83937dcd9766"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
