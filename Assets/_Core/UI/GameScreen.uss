@@ -1,0 +1,139 @@
+/* ---------------------------------------------------------------------------
+   Two-pane game screen: file system (left) + incoming requests (right).
+   Reuses the --ra-* palette declared in RaFileSystem.uss.
+--------------------------------------------------------------------------- */
+
+.game-screen {
+    flex-grow: 1;
+    flex-direction: row;
+    background-color: var(--ra-bg);
+}
+
+.game-screen__pane {
+    flex-grow: 1;
+    flex-basis: 0;          /* equal halves regardless of content */
+    overflow: hidden;
+}
+
+.game-screen__pane--right {
+    border-left-width: 2px;
+    border-left-color: var(--ra-border);
+}
+
+/* A TemplateContainer (<ui:Instance>) has no flex-grow by default — make it fill the pane. */
+.game-screen__fill {
+    flex-grow: 1;
+}
+
+/* -------- Requests panel -------- */
+
+.req-window {
+    flex-grow: 1;
+    background-color: var(--ra-bg);
+}
+
+.req-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 34px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: var(--ra-toolbar);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--ra-border);
+}
+
+.req-title {
+    color: var(--ra-text);
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.req-count {
+    color: var(--ra-text-dim);
+    font-size: 12px;
+}
+
+.req-list {
+    flex-grow: 1;
+    background-color: var(--ra-panel);
+}
+
+.req-empty-label {
+    -unity-text-align: middle-center;
+    color: var(--ra-text-dim);
+    font-size: 13px;
+    padding-top: 24px;
+}
+
+/* -------- A single request card -------- */
+
+.req-card {
+    background-color: var(--ra-bg);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 6px;
+    margin: 8px;
+    padding: 10px;
+}
+
+.req-card__title {
+    color: var(--ra-text);
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.req-card__desc {
+    color: var(--ra-text-dim);
+    font-size: 12px;
+    white-space: normal;      /* wrap long descriptions */
+    margin-bottom: 8px;
+}
+
+.req-card__timerbar {
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--ra-toolbar);
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.req-card__timerfill {
+    height: 4px;
+    width: 100%;
+    background-color: var(--ra-accent);
+}
+
+.req-card__actions {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.req-btn {
+    height: 26px;
+    padding-left: 14px;
+    padding-right: 14px;
+    margin-left: 6px;
+    border-width: 0;
+    border-radius: 4px;
+    color: var(--ra-text);
+    font-size: 12px;
+}
+
+.req-btn--approve {
+    background-color: rgb(46, 122, 74);
+}
+
+.req-btn--approve:hover {
+    background-color: rgb(58, 148, 92);
+}
+
+.req-btn--deny {
+    background-color: rgb(150, 60, 60);
+}
+
+.req-btn--deny:hover {
+    background-color: rgb(182, 74, 74);
+}
