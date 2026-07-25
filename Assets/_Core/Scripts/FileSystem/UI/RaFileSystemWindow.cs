@@ -8,7 +8,7 @@ namespace GMTK_2026
 	[RequireComponent(typeof(UIDocument))]
 	public class RaFileSystemWindow : MonoBehaviour
 	{
-		public event Action<RaFileSystemEntity> FileOpenedEvent;
+		public event Action<RaFileSystemItemBase> FileOpenedEvent;
 		public event Action<RaFolder> FolderChangedEvent;
 
 		private UIDocument _document;
@@ -151,7 +151,7 @@ namespace GMTK_2026
 		{
 			_contents.Clear();
 
-			IReadOnlyList<RaFileSystemEntity> children = CurrentFolder?.Children;
+			IReadOnlyList<RaFileSystemItemBase> children = CurrentFolder?.Children;
 			int count = children?.Count ?? 0;
 
 			if (count == 0)
@@ -197,7 +197,7 @@ namespace GMTK_2026
 
 		private void OnRowActivated(RaEntityElement row)
 		{
-			RaFileSystemEntity entity = row.Entity;
+			RaFileSystemItemBase entity = row.Entity;
 			if (entity == null)
 				return;
 

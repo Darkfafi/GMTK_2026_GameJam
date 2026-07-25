@@ -15,7 +15,7 @@ namespace GMTK_2026
 		private readonly Label _icon;
 		private readonly Label _label;
 
-		public RaFileSystemEntity Entity { get; private set; }
+		public RaFileSystemItemBase Entity { get; private set; }
 
 		public RaEntityElement()
 		{
@@ -33,7 +33,7 @@ namespace GMTK_2026
 			RegisterCallback<ClickEvent>(OnClickedEvent);
 		}
 
-		public void Bind(RaFileSystemEntity entity)
+		public void Bind(RaFileSystemItemBase entity)
 		{
 			Entity = entity;
 			_label.text = entity?.Name ?? string.Empty;
