@@ -17,7 +17,6 @@
     background-color: var(--ra-bg);
     border-width: 1px;
     border-color: var(--ra-border);
-    border-radius: 6px;
     overflow: hidden;
 }
 
