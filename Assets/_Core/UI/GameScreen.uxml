@@ -69,7 +69,7 @@
 
                 <ui:VisualElement class="chat-input-row">
                     <ui:TextField name="chat-input" class="chat-input" />
-                    <ui:Button name="chat-send" text="➤" class="chat-send" />
+                    <ui:Button name="chat-send" text="&gt;" class="chat-send" />
                 </ui:VisualElement>
 
                 <ui:VisualElement class="chat-actions">

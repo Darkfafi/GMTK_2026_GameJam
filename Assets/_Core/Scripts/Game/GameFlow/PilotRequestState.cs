@@ -272,7 +272,7 @@ namespace GMTK_2026
 
 			string summary = GetMistakesSummary();
 			string ratingText =
-@"# [!] STATION SECURITY COMPROMISED
+@"<size=18><color=#ff4757><b>GAME OVER</b></color></size>
 
 **CRITICAL FAILURE — SHIFT TERMINATED**
 
@@ -281,7 +281,7 @@ The station has suffered catastrophic failure after sustaining **3 severe proced
 ### [STATS] Shift Summary:
 - **Cleared Pilots:** " + Dependency.StatsController.Correct + @"
 - **Total Score:** " + Dependency.StatsController.Score + @" pts
-- **Integrity Level:** 0% (CRITICAL BURNOUT)
+- **Integrity Level:** 0%
 
 ### [INCIDENTS] Incident Report (What Went Wrong):
 " + summary + @"

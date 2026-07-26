@@ -8,7 +8,7 @@
 
         <!-- Toolbar -->
         <ui:VisualElement name="ra-toolbar" class="ra-toolbar">
-            <ui:Button name="ra-back-button" text="←" class="ra-back-button" />
+            <ui:Button name="ra-back-button" text="&lt;" class="ra-back-button" />
             <ui:VisualElement name="ra-breadcrumb" class="ra-breadcrumb" />
         </ui:VisualElement>
 
