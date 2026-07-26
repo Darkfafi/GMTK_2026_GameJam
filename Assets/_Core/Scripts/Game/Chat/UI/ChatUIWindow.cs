@@ -127,7 +127,7 @@ namespace GMTK_2026
 				bool isPilot = speaker == ChatSpeaker.Pilot;
 				row.AddToClassList(isPilot ? "msg--pilot" : "msg--op");
 
-				Label avatar = new Label(isPilot ? "📡" : "🎧") { pickingMode = PickingMode.Ignore };
+				Label avatar = new Label(isPilot ? ">>>" : "[OP]") { pickingMode = PickingMode.Ignore };
 				avatar.AddToClassList("msg-av");
 				row.Add(avatar);
 			}
@@ -343,7 +343,7 @@ namespace GMTK_2026
 
 			_typingRow.Clear();
 
-			Label avatar = new Label("📡") { pickingMode = PickingMode.Ignore };
+			Label avatar = new Label(">>>") { pickingMode = PickingMode.Ignore };
 			avatar.AddToClassList("msg-av");
 			_typingRow.Add(avatar);
 			_typingRow.Add(new TypingIndicatorElement());

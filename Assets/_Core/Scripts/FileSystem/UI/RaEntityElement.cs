@@ -46,7 +46,7 @@ namespace GMTK_2026
 			bool isFolder = entity is RaFolder;
 			bool isImage = !isFolder && IsImage(entity?.Name);
 
-			_icon.text = isFolder ? "📁" : (isImage ? "🖼" : "📄");
+			_icon.text = isFolder ? "[/]" : (isImage ? "[#]" : "[=]");
 			_icon.EnableInClassList("ra-entity__icon--folder", isFolder);
 			_icon.EnableInClassList("ra-entity__icon--image", isImage);
 			_icon.EnableInClassList("ra-entity__icon--file", !isFolder && !isImage);

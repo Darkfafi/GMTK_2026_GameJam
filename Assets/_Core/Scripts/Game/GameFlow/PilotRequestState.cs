@@ -272,18 +272,18 @@ namespace GMTK_2026
 
 			string summary = GetMistakesSummary();
 			string ratingText =
-@"# 🚨 STATION SECURITY COMPROMISED
+@"# [!] STATION SECURITY COMPROMISED
 
 **CRITICAL FAILURE — SHIFT TERMINATED**
 
 The station has suffered catastrophic failure after sustaining **3 severe procedural violations**. Your landing operator clearance has been revoked.
 
-### 📊 Shift Summary:
+### [STATS] Shift Summary:
 - **Cleared Pilots:** " + Dependency.StatsController.Correct + @"
 - **Total Score:** " + Dependency.StatsController.Score + @" pts
 - **Integrity Level:** 0% (CRITICAL BURNOUT)
 
-### ❌ Incident Report (What Went Wrong):
+### [INCIDENTS] Incident Report (What Went Wrong):
 " + summary + @"
 
 *Station Alpha has been locked down. Operator must re-certify.*";
@@ -302,19 +302,19 @@ The station has suffered catastrophic failure after sustaining **3 severe proced
 
 			string summary = GetMistakesSummary();
 			string ratingText =
-@"# 🛰️ SHIFT COMPLETED
+@"# [SUCCESS] SHIFT COMPLETED
 
 **RATING: " + rating + @"**
 
 Congratulations, Operator. You have successfully completed your shift quota of **8 requests**.
 
-### 📊 Performance Report:
+### [STATS] Performance Report:
 - **Rating:** " + rating + @"
 - **Cleared Pilots:** " + stats.Correct + @"
 - **Total Score:** " + stats.Score + @" pts
 - **Station Integrity:** " + (100 - (stats.Mistakes * 33)) + @"%
 
-### ❌ Incident Log (What Went Wrong):
+### [INCIDENTS] Incident Log (What Went Wrong):
 " + (stats.Mistakes == 0 ? "*Perfect run. No incidents recorded.*" : summary) + @"
 
 *Your performance has been transmitted to Sector Command.*";

@@ -11,7 +11,7 @@
         <!-- Top bar -->
         <ui:VisualElement name="topbar" class="topbar">
             <ui:VisualElement class="topbar-left">
-                <ui:Label name="station-logo" text="🛰" class="station-logo" />
+                <ui:Label name="station-logo" text="[O]" class="station-logo" />
                 <ui:VisualElement>
                     <ui:Label text="STATION ALPHA" class="station-name" />
                     <ui:Label text="OPERATOR TERMINAL - v1.33.7" class="station-sub" />
@@ -83,7 +83,7 @@
                 </ui:VisualElement>
 
                 <ui:VisualElement name="chat-briefing" class="chat-briefing">
-                    <ui:Label text="🛰" class="briefing-icon" />
+                    <ui:Label text="[O]" class="briefing-icon" />
                     <ui:Label text="OPERATOR BRIEFING" class="briefing-title" />
                     <ui:Label text="Station Alpha — Landing Control Division" class="briefing-sub" />
                     <ui:ScrollView name="briefing-scroll" class="briefing-scroll">
