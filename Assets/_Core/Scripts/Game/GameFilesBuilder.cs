@@ -51,40 +51,37 @@ namespace GMTK_2026
 		private static string LandingProtocols()
 		{
 			return
-@"# Landing Protocols
+		@"# Landing Protocols
 
-A landing is cleared only when the pilot can survive the destination.
-Four conditions are checked. ALL must pass.
+A landing request is cleared ONLY when both the pilot and vessel can survive the target world.
+If **ANY** single aspect fails to line up or meet required safety ratings, the request **MUST BE DECLINED**.
 
-## The Four Axes
-- **Pressure** (atm) — the world's value must fall inside a range the pilot tolerates
-- **Gravity** (m/s²) — same
-- **Temperature** (°C) — judged on the world's AVERAGE temperature
-- **Composition** — every substance the species REQUIRED must be present
+## Mandatory Interrogation
+Before making a call, you must actively question the pilot for four key details:
+1. **Species** — Who is flying?
+2. **Destination Planet** — Where are they attempting to land?
+3. **Ship Type** — What vessel class are they operating?
+4. **Equipment** — What gear are they wearing to survive environmental hazards?
 
-## Procedure
-- Identify the pilot's species in the [species registry](species_registry.md)
-- Identify the destination in the [planetary index](planetary_index.md)
-- Compare each axis against the species' natural tolerance
-- If an axis falls outside it, check the pilot's gear in the [equipment registry](equipment_registry.md)
-- Finally check the vessel against the [ship registry](ship_registry.md)
+## The Four Environmental Axes
+- **Pressure** (atm) — Must fall within safe limits
+- **Gravity** (m/s²) — Must fall within safe limits
+- **Temperature** (°C) — Judged against the world's AVERAGE temperature
+- **Composition** — Every element REQUIRED by the species must be present
 
-## Equipment Rules
-- Gear covers an axis only if the world's value falls inside the GEAR's rating
-- Gear listing no rating for an axis does not help there — the species' own limit applies
-- Gear only works for the species it is certified for. Uncertified gear is DENIED as protection
-- Gear may also supply missing composition requirements
+## Verification Procedure
+1. Identify the **Species** in the [species registry](species_registry.md) and the **Destination** in the [planetary index](planetary_index.md).
+2. Compare the natural limits of the species against the target planet across all 4 axes.
+3. If any axis exceeds natural limits, check if the pilot's **Equipment** in the [equipment registry](equipment_registry.md) bridges the gap and is certified for that species.
+4. Check the **Ship Type** in the [ship registry](ship_registry.md) to ensure the hull can handle the planet's pressure, gravity, and temperature.
 
-## Hull Rules
-- The ship must survive the descent on pressure, gravity and temperature
-- Equipment does not protect a hull. You cannot put a suit on a freighter
-- A surviving pilot in an under-rated hull is still DENIED
+## Rules & Limitations
+- **Equipment Rules**: Gear only protects an axis if rated for the planet's metrics and certified for that specific species. Equipment *never* protects a ship hull.
+- **Hull Rules**: A vessel must independently survive descent. A suit-wearing pilot in an under-rated ship is still an illegal landing.
 
-## Rulings
-- Pilot survives all four axes AND the hull is rated: landing PERMITTED
-- Anything uncovered: landing DENIED
-
-A species can always survive its own origin world unaided — its ship may not.";
+## Decision Matrix
+- **PERMITTED**: Pilot survives all four axes (naturally or via certified equipment) **AND** the ship hull is rated for the world.
+- **DENIED**: If **ANY** parameter fails, does not align, or remains unverified, you **MUST DECLINE** the request.";
 		}
 
 		private static string SpeciesIndex()
@@ -356,22 +353,27 @@ A species can always survive its own origin world unaided — its ship may not."
 		private static string Readme()
 		{
 			return
-@"# Station Alpha — File System
+		@"# Station Alpha — File System
 
 Welcome, Operator.
 
-Pilots will hail you requesting landing clearance. They will not volunteer
-everything. Interrogate them, then verify what they tell you against these records.
+Pilots hailing the station rarely volunteer all required details. You must actively interrogate each pilot to confirm four mandatory factors:
+- **Species**
+- **Destination Planet**
+- **Ship Type**
+- **Equipment** (if needed to survive environmental hazards)
+
+Cross-reference their claims against the station database. **If any aspect does not align or meet full clearance standards, the request must be DECLINED.**
 
 ## Directory Structure
-- Documents/ — protocols, registries and indexes
+- Documents/ — protocols, registries, and indexes
 - Photos/ — reference imagery (not operationally relevant)
 
 ## Start Here
-- [Landing protocols](landing_protocols.md) — how a clearance decision is made
-- [Species registry](species_registry.md) — who can survive what
-- [Planetary index](planetary_index.md) — measured conditions per world
-- [Equipment registry](equipment_registry.md) — what gear covers, and for whom
+- [Landing protocols](landing_protocols.md) — step-by-step verification rules
+- [Species registry](species_registry.md) — natural survival limits
+- [Planetary index](planetary_index.md) — environmental conditions
+- [Equipment registry](equipment_registry.md) — gear ratings & species compatibility
 - [Ship registry](ship_registry.md) — hull ratings per vessel class
 
 ## Your Responsibility
