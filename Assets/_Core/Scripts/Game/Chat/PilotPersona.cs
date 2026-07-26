@@ -62,9 +62,9 @@ namespace GMTK_2026
 
 		private void Roll()
 		{
-			Clarity = Random.Range(0.35f, 0.95f);
-			Cooperation = Random.Range(0.3f, 0.95f);
-			Nervousness = Random.Range(0f, 0.8f);
+			Clarity = Request.Clarity.HasValue ? Request.Clarity.Value : Random.Range(0.35f, 0.95f);
+			Cooperation = Request.Cooperation.HasValue ? Request.Cooperation.Value : Random.Range(0.3f, 0.95f);
+			Nervousness = Request.Nervousness.HasValue ? Request.Nervousness.Value : Random.Range(0f, 0.8f);
 
 			// Always Known
 			_knowledge[ChatTopic.Name] = 1f;
@@ -85,6 +85,15 @@ namespace GMTK_2026
 			_knowledge[ChatTopic.Body] = RollKnowledge(0.6f, 0.15f);
 			_knowledge[ChatTopic.Occupation] = RollKnowledge(0.7f, 0.1f);
 			_knowledge[ChatTopic.Needs] = RollKnowledge(0.5f, 0.2f);
+
+			// Override with custom values if specified
+			if (Request.CustomKnowledge != null)
+			{
+				foreach (var kvp in Request.CustomKnowledge)
+				{
+					_knowledge[kvp.Key] = kvp.Value;
+				}
+			}
 
 			string pilot = Request.Pilot?.Name;
 			string planet = Request.Target?.Name;

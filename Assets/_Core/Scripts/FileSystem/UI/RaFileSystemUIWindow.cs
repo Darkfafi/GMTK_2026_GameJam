@@ -28,6 +28,12 @@ namespace GMTK_2026
 		private readonly List<RaFolder> _path = new List<RaFolder>();
 		private readonly List<RaEntityElement> _rowPool = new List<RaEntityElement>();
 
+		private readonly List<RaFile> _lastVisitedFiles = new List<RaFile>();
+		private VisualElement _historyButtonsContainer;
+		private VisualElement _previewPopover;
+		private Label _previewText;
+		private IVisualElementScheduledItem _hideTask;
+
 		private RaEntityElement _selected;
 
 		public RaFolder CurrentFolder => _path.Count > 0 ? _path[^1] : null;
@@ -43,6 +49,23 @@ namespace GMTK_2026
 			_fileContent = root.Q<VisualElement>("ra-file-content");
 			_fcText = root.Q<Label>("fc-text");
 
+			_historyButtonsContainer = root.Q<VisualElement>("ra-history-buttons");
+			_previewPopover = root.Q<VisualElement>("ra-history-preview");
+			_previewText = root.Q<Label>("ra-preview-text");
+
+			if (_previewPopover != null)
+			{
+				_previewPopover.RegisterCallback<PointerEnterEvent>(evt => {
+					_hideTask?.Pause();
+				});
+
+				_previewPopover.RegisterCallback<PointerLeaveEvent>(evt => {
+					_hideTask = _previewPopover.schedule.Execute(() => {
+						_previewPopover.style.display = DisplayStyle.None;
+					}).StartingIn(200);
+				});
+			}
+
 			if (_backButton != null)
 			{
 				_backButton.clicked += OnBackClicked;
@@ -54,6 +77,7 @@ namespace GMTK_2026
 			}
 
 			CloseFileContent();
+			RenderHistoryBar();
 
 			if (_path.Count > 0)
 			{
@@ -194,6 +218,19 @@ namespace GMTK_2026
 			{
 				_statusLabel.parent.style.display = DisplayStyle.None;
 			}
+
+			// Add to last visited files history
+			if (_lastVisitedFiles.Contains(file))
+			{
+				_lastVisitedFiles.Remove(file);
+			}
+			_lastVisitedFiles.Insert(0, file);
+			while (_lastVisitedFiles.Count > 3)
+			{
+				_lastVisitedFiles.RemoveAt(_lastVisitedFiles.Count - 1);
+			}
+			RenderHistoryBar();
+
 			RenderBreadcrumb();
 			RefreshBackButton();
 		}
@@ -426,6 +463,48 @@ namespace GMTK_2026
 					OpenFileContent(raFile);
 				}
 				FileOpenedEvent?.Invoke(entity);
+			}
+		}
+
+		private void RenderHistoryBar()
+		{
+			if (_historyButtonsContainer == null) return;
+
+			_historyButtonsContainer.Clear();
+
+			foreach (RaFile file in _lastVisitedFiles)
+			{
+				Button btn = new Button { text = file.Name };
+				btn.AddToClassList("ra-history-btn");
+				btn.clicked += () => {
+					_hideTask?.Pause();
+					if (_previewPopover != null)
+					{
+						_previewPopover.style.display = DisplayStyle.None;
+					}
+					OpenFileContent(file);
+				};
+
+				// PointerEnter/PointerLeave for hover preview popover
+				btn.RegisterCallback<PointerEnterEvent>(evt => {
+					_hideTask?.Pause();
+					if (_previewPopover != null && _previewText != null)
+					{
+						_previewText.text = TerminalMarkdown.ToRichText(file.Content);
+						_previewPopover.style.display = DisplayStyle.Flex;
+					}
+				});
+
+				btn.RegisterCallback<PointerLeaveEvent>(evt => {
+					if (_previewPopover != null)
+					{
+						_hideTask = _previewPopover.schedule.Execute(() => {
+							_previewPopover.style.display = DisplayStyle.None;
+						}).StartingIn(200);
+					}
+				});
+
+				_historyButtonsContainer.Add(btn);
 			}
 		}
 	}

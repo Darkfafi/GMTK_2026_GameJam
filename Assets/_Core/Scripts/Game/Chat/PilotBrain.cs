@@ -275,7 +275,8 @@ namespace GMTK_2026
 
 				case ChatTopic.ShipClass:
 					ShipAspect shipClass = request.Ship?.Class;
-					return ValueAnswer(topic, shipClass?.Name,
+					string shipClassName = shipClass?.Name;
+					return ValueAnswer(topic, shipClassName,
 						dont: DescribeClue(shipClass?.Description,
 							"No idea what class it is. It was the only one on the pad."));
 				case ChatTopic.Destination:
@@ -284,9 +285,10 @@ namespace GMTK_2026
 
 				case ChatTopic.Species:
 					SpeciesAspect species = request.Pilot?.Species;
+					string speciesName = species?.Name;
 					// A pilot who can't name their species still knows where they're from —
 					// the planetary index lists each world's natives.
-					return ValueAnswer(topic, species?.Name,
+					return ValueAnswer(topic, speciesName,
 						dont: species != null
 							? Pick(
 								$"I don't know what your records call us. I'm from {species.Origin}, if that helps.",
@@ -295,7 +297,8 @@ namespace GMTK_2026
 							: "I'm... not sure what you'd call me.");
 
 				case ChatTopic.Origin:
-					return ValueAnswer(topic, request.Pilot?.Species?.Origin,
+					string originName = request.Pilot?.Species?.Origin;
+					return ValueAnswer(topic, originName,
 						dont: "I've been out here so long I couldn't tell you where I started.");
 
 				case ChatTopic.Equipment:

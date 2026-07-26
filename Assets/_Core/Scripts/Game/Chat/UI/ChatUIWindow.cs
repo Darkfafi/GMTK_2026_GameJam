@@ -292,7 +292,15 @@ namespace GMTK_2026
 			if (show && body != null && _briefingBody != null)
 			{
 				_briefingBody.enableRichText = true;
-				_briefingBody.text = body;
+				_briefingBody.text = TerminalMarkdown.ToRichText(body);
+			}
+		}
+
+		public void SetStartShiftButtonText(string text)
+		{
+			if (_startShift != null)
+			{
+				_startShift.text = text;
 			}
 		}
 

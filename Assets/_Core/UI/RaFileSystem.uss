@@ -171,6 +171,8 @@
 .fc {
     display: none;
     flex-grow: 1;
+    height: 0;
+    min-height: 0;
     padding: 16px;
     border-top-width: 1px;
     border-top-color: var(--ra-border);
@@ -178,6 +180,7 @@
 
 .fc-scroll {
     flex-grow: 1;
+    height: 100%;
 }
 
 .fc-text {
@@ -201,4 +204,74 @@
 .ra-status-label {
     color: var(--ra-text-dim);
     font-size: 11px;
+}
+
+/* -------- History bar & Hover preview popover -------- */
+
+.ra-history {
+    flex-direction: row;
+    align-items: center;
+    height: 32px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: var(--ra-toolbar);
+    border-top-width: 1px;
+    border-top-color: var(--ra-border);
+    flex-shrink: 0;
+}
+
+.ra-history-title {
+    font-size: 10px;
+    color: var(--ra-text-dim);
+    -unity-font-style: bold;
+    margin-right: 8px;
+}
+
+.ra-history-buttons {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.ra-history-btn {
+    height: 22px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-right: 6px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 4px;
+    color: var(--ra-text);
+    font-size: 10px;
+    transition-duration: 0.15s;
+}
+
+.ra-history-btn:hover {
+    background-color: rgba(0, 255, 136, 0.1);
+    border-color: var(--ra-accent);
+}
+
+.ra-preview-popover {
+    display: none;
+    position: absolute;
+    bottom: 54px;
+    left: 10px;
+    right: 10px;
+    max-height: 250px;
+    background-color: rgba(8, 12, 18, 0.95);
+    border-width: 1px;
+    border-color: var(--ra-border);
+    border-radius: 6px;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.ra-preview-scroll {
+    flex-grow: 1;
+}
+
+.ra-preview-text {
+    font-size: 10px;
+    color: var(--ra-text);
+    white-space: normal;
 }

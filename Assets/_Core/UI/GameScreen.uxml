@@ -14,15 +14,27 @@
                 <ui:Label name="station-logo" text="🛰" class="station-logo" />
                 <ui:VisualElement>
                     <ui:Label text="STATION ALPHA" class="station-name" />
-                    <ui:Label text="OPERATOR TERMINAL" class="station-sub" />
+                    <ui:Label text="OPERATOR TERMINAL - v1.33.7" class="station-sub" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="topbar-stats">
-                <ui:VisualElement class="stat">
-                    <ui:Label name="stat-correct" text="0" class="stat-value" />
+                <!-- Score & Streak -->
+                <ui:VisualElement class="stat-group">
+                    <ui:Label text="SCORE" class="stat-header" />
+                    <ui:Label name="stat-score" text="0000" class="stat-value" />
                 </ui:VisualElement>
-                <ui:VisualElement class="stat">
-                    <ui:Label name="stat-wrong" text="0" class="stat-value stat-value--danger" />
+                <ui:VisualElement class="stat-group">
+                    <ui:Label text="STREAK" class="stat-header" />
+                    <ui:Label name="stat-streak" text="x1" class="stat-value stat-value--info" />
+                </ui:VisualElement>
+                <!-- Station Integrity -->
+                <ui:VisualElement class="integrity-container">
+                    <ui:Label text="STATION INTEGRITY" class="stat-header" />
+                    <ui:VisualElement class="integrity-bar">
+                        <ui:VisualElement name="integrity-dot-1" class="integrity-dot integrity-dot--full" />
+                        <ui:VisualElement name="integrity-dot-2" class="integrity-dot integrity-dot--full" />
+                        <ui:VisualElement name="integrity-dot-3" class="integrity-dot integrity-dot--full" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

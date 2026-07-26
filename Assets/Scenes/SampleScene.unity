@@ -470,7 +470,7 @@ MonoBehaviour:
     CurrentStateSuffix: ' [CURRENT]'
   _searchHierarchyForDependencies: 1
   _resultDisplaySeconds: 2.2
-  _requestTimeLimit: 30
+  _requestTimeLimit: 180
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

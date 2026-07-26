@@ -22,9 +22,22 @@
             </ui:ScrollView>
         </ui:VisualElement>
 
+        <!-- History bar -->
+        <ui:VisualElement name="ra-history" class="ra-history">
+            <ui:Label text="RECENT:" class="ra-history-title" />
+            <ui:VisualElement name="ra-history-buttons" class="ra-history-buttons" />
+        </ui:VisualElement>
+
         <!-- Status bar -->
         <ui:VisualElement name="ra-statusbar" class="ra-statusbar">
             <ui:Label name="ra-status-label" text="" class="ra-status-label" />
+        </ui:VisualElement>
+
+        <!-- History hover preview popover -->
+        <ui:VisualElement name="ra-history-preview" class="ra-preview-popover" picking-mode="Ignore">
+            <ui:ScrollView name="ra-preview-scroll" class="ra-preview-scroll" picking-mode="Ignore">
+                <ui:Label name="ra-preview-text" text="" class="ra-preview-text" picking-mode="Ignore" />
+            </ui:ScrollView>
         </ui:VisualElement>
 
     </ui:VisualElement>

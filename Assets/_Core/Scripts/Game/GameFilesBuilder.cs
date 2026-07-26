@@ -218,6 +218,26 @@ A species can always survive its own origin world unaided — its ship may not."
 		private static bool Covers(FloatRange? range, float value)
 			=> range.HasValue && range.Value.Contains(value);
 
+		private static bool CanSurviveUnaided(SpeciesAspect species, CelestialBodyAspect body)
+		{
+			// Check pressure
+			if (species.Envelope.Pressure.HasValue && !species.Envelope.Pressure.Value.Contains(body.Environment.Pressure))
+				return false;
+			// Check gravity
+			if (species.Envelope.Gravity.HasValue && !species.Envelope.Gravity.Value.Contains(body.Environment.Gravity))
+				return false;
+			// Check temperature
+			if (species.Envelope.Temperature.HasValue && !species.Envelope.Temperature.Value.Contains(body.Environment.AverageTemperature))
+				return false;
+			// Check composition requirements
+			foreach (var req in species.Envelope.Requirements)
+			{
+				if (!body.Environment.Composition.Contains(req))
+					return false;
+			}
+			return true;
+		}
+
 		private static string SpeciesPage(SpeciesAspect species)
 		{
 			StringBuilder sb = new StringBuilder();
@@ -232,6 +252,22 @@ A species can always survive its own origin world unaided — its ship may not."
 			sb.AppendLine($"- Gravity: {Describe(species.Envelope.Gravity, "m/s²")}");
 			sb.AppendLine($"- Temperature: {Describe(species.Envelope.Temperature, "°C")}");
 			sb.AppendLine($"- REQUIRED: {Tags(species.Envelope.Requirements)}");
+			sb.AppendLine();
+
+			sb.AppendLine("## Unaided Survival Clearance");
+			List<CelestialBodyAspect> survivable = GameCatalog.CelestialBodies
+				.Where(body => CanSurviveUnaided(species, body)).ToList();
+			if (survivable.Count == 0)
+			{
+				sb.AppendLine("- No registered body can support this species unaided");
+			}
+			else
+			{
+				foreach (CelestialBodyAspect body in survivable)
+				{
+					sb.AppendLine($"- [{body.Name}]({Slug(body.Name)})");
+				}
+			}
 			sb.AppendLine();
 
 			List<EquipmentAspect> certified = GameCatalog.Equipment

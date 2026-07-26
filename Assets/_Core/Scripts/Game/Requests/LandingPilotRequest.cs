@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace GMTK_2026
 {
 	public class LandingPilotRequest : PilotRequestBase
@@ -9,6 +11,12 @@ namespace GMTK_2026
 
 		public PlanetEntity Target => GetDependency<PlanetEntity>(DependencyKeys.Target);
 		public ShipEntity Ship => GetDependency<ShipEntity>(DependencyKeys.Ship);
+
+		// Persona parameters set by request generator
+		public float? Clarity { get; set; }
+		public float? Cooperation { get; set; }
+		public float? Nervousness { get; set; }
+		public Dictionary<ChatTopic, float> CustomKnowledge { get; set; } = new Dictionary<ChatTopic, float>();
 
 		public LandingPilotRequest(CreatureEntity pilot, PlanetEntity target, ShipEntity ship, float timeLimit = 20f)
 			: base(pilot, timeLimit)

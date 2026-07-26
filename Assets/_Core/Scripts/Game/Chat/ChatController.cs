@@ -40,7 +40,19 @@ namespace GMTK_2026
 		public void ShowBriefing()
 		{
 			_uiWindow.SetInteractable(false);
+			_uiWindow.SetStartShiftButtonText("START SHIFT");
 			_uiWindow.ShowBriefing(true, BriefingText);
+		}
+
+		public void ShowBriefing(string customText)
+		{
+			_uiWindow.SetInteractable(false);
+			_uiWindow.ShowBriefing(true, customText);
+		}
+
+		public void SetStartShiftButtonText(string text)
+		{
+			_uiWindow.SetStartShiftButtonText(text);
 		}
 
 		public void HideBriefing()
@@ -60,9 +72,9 @@ namespace GMTK_2026
 			"A landing needs four conditions met — <color=#00ff88>pressure</color>, " +
 			"<color=#00ff88>gravity</color>, <color=#00ff88>temperature</color> and " +
 			"<color=#00ff88>composition</color> — plus a hull rated for the descent.\n\n" +
-			"<b>Make the call.</b> Access or Decline before the transmission times out. " +
-			"<color=#ff4757>A timeout counts against you.</color>\n\n" +
-			"Take your time reading. The shift starts when you say so.";
+			"<b>Make the call.</b> Access or Decline  " +
+			"<color=#ff4757>before the transmission times out.</color>\n\n" +
+			"Take your time reading. And start the shift when you are ready";
 
 		public void StartConversation(LandingPilotRequest request)
 		{

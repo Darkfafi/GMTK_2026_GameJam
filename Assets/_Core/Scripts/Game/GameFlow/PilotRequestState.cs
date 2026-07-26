@@ -54,6 +54,11 @@ namespace GMTK_2026
 
 		private LandingPilotRequest CreateRandomRequest()
 		{
+			int processed = Dependency.StatsController.RequestsProcessed; // 0 to 7
+			bool isEasy = processed < 3;       // 1st, 2nd, 3rd pilots
+			bool isMedium = processed >= 3 && processed < 6; // 4th, 5th, 6th pilots
+			bool isHard = processed >= 6;      // 7th, 8th pilots (lies possible)
+
 			SpeciesAspect species = Pick(GameCatalog.Species);
 
 			CreatureEntity pilot = new CreatureEntity(Pick(PilotNames))
@@ -75,7 +80,52 @@ namespace GMTK_2026
 
 			ShipEntity ship = new ShipEntity(Pick(ShipNames)).Apply(RollShipClass(body));
 
-			return new LandingPilotRequest(pilot, planet, ship, _requestTimeLimit);
+			LandingPilotRequest req = new LandingPilotRequest(pilot, planet, ship, _requestTimeLimit);
+
+			// Scale difficulty
+			if (isEasy)
+			{
+				req.Clarity = Random.Range(0.85f, 1.0f);
+				req.Cooperation = Random.Range(0.85f, 1.0f);
+				req.Nervousness = Random.Range(0.0f, 0.2f);
+
+				// They know everything perfectly
+				req.CustomKnowledge[ChatTopic.Species] = 1f;
+				req.CustomKnowledge[ChatTopic.ShipClass] = 1f;
+				req.CustomKnowledge[ChatTopic.Equipment] = 1f;
+				req.CustomKnowledge[ChatTopic.Needs] = 1f;
+				req.CustomKnowledge[ChatTopic.Body] = 1f;
+				req.CustomKnowledge[ChatTopic.Occupation] = 1f;
+			}
+			else if (isMedium)
+			{
+				req.Clarity = Random.Range(0.35f, 0.6f);
+				req.Cooperation = Random.Range(0.35f, 0.6f);
+				req.Nervousness = Random.Range(0.3f, 0.7f);
+
+				// Amnesia/vague: roll random fields to be vague (0.5f) or unknown (0f)
+				req.CustomKnowledge[ChatTopic.Species] = Random.value < 0.5f ? 0.5f : 0f;
+				req.CustomKnowledge[ChatTopic.ShipClass] = Random.value < 0.5f ? 0.5f : 0f;
+				req.CustomKnowledge[ChatTopic.Equipment] = Random.value < 0.5f ? 0.5f : 0f;
+				req.CustomKnowledge[ChatTopic.Needs] = Random.value < 0.5f ? 0.5f : 0f;
+				req.CustomKnowledge[ChatTopic.Body] = Random.value < 0.5f ? 0.5f : 0f;
+			}
+			else // isHard
+			{
+				req.Clarity = Random.Range(0.2f, 0.5f);
+				req.Cooperation = Random.Range(0.2f, 0.5f);
+				req.Nervousness = Random.Range(0.6f, 0.95f);
+
+				// Normal hard pilot (very amnesiac and uncooperative)
+				req.CustomKnowledge[ChatTopic.Species] = 0f;
+				req.CustomKnowledge[ChatTopic.ShipClass] = 0f;
+				req.CustomKnowledge[ChatTopic.Equipment] = 0f;
+				req.CustomKnowledge[ChatTopic.Needs] = 0f;
+				req.CustomKnowledge[ChatTopic.Body] = 0f;
+				req.CustomKnowledge[ChatTopic.Occupation] = 0f;
+			}
+
+			return req;
 		}
 
 		private static ShipAspect RollShipClass(CelestialBodyAspect body)
@@ -148,13 +198,14 @@ namespace GMTK_2026
 
 			if (correct)
 			{
-				Dependency.StatsController.RegisterCorrect();
+				float elapsedSeconds = _request.TimeLimit - _request.TimeRemaining;
+				Dependency.StatsController.RegisterCorrect(elapsedSeconds);
 				Dependency.LogController.Log($"{pilot} — {decision} — Correct", LogLevel.Accent);
 				Dependency.ToastWindow.Show("Correct decision", ToastType.Ok);
 			}
 			else
 			{
-				Dependency.StatsController.RegisterIncorrect();
+				Dependency.StatsController.RegisterIncorrect(pilot, decision, why);
 				Dependency.LogController.Log($"{pilot} — {decision} — WRONG", LogLevel.Danger);
 				Dependency.LogController.Log($"Reason: {why}", LogLevel.Warning);
 				Dependency.ToastWindow.Show("Wrong decision — see log", ToastType.Error);
@@ -174,8 +225,8 @@ namespace GMTK_2026
 			RequestVerdict verdict = request.Evaluate();
 			string correctAction = verdict.IsApproved ? "ACCESS" : "DECLINE";
 
+			Dependency.StatsController.RegisterTimeout(request.Pilot?.Name, correctAction);
 			Dependency.ChatController.ShowSystemMessage("— Transmission timed out — auto-declined —");
-			Dependency.StatsController.RegisterIncorrect();
 			Dependency.LogController.Log($"{request.Pilot?.Name} — request timed out", LogLevel.Warning);
 			Dependency.LogController.Log($"Correct action was {correctAction}", LogLevel.Info);
 			Dependency.ToastWindow.Show("Request timed out", ToastType.Error);
@@ -197,7 +248,98 @@ namespace GMTK_2026
 
 			Dependency.ChatController.EndConversation();
 			Dependency.RequestsController.RemoveRequest(_request);
+
+			SessionStatsController stats = Dependency.StatsController;
+			if (stats.Mistakes >= 3)
+			{
+				TriggerCatastrophicFailure();
+			}
+			else if (stats.RequestsProcessed >= 8)
+			{
+				TriggerShiftComplete();
+			}
+			else
+			{
+				FSM_GoToNextState();
+			}
+		}
+
+		private void TriggerCatastrophicFailure()
+		{
+			Dependency.ChatController.ShowSystemMessage("[SYSTEM CRITICAL] EMERGENCY QUARANTINE INITIATED.");
+			Dependency.LogController.Log("SYSTEM MALFUNCTION: CRITICAL CATASTROPHIC FAILURE.", LogLevel.Danger);
+			Dependency.LogController.Log("Emergency quarantine active. Sector seal breached.", LogLevel.Danger);
+
+			string summary = GetMistakesSummary();
+			string ratingText =
+@"# 🚨 STATION SECURITY COMPROMISED
+
+**CRITICAL FAILURE — SHIFT TERMINATED**
+
+The station has suffered catastrophic failure after sustaining **3 severe procedural violations**. Your landing operator clearance has been revoked.
+
+### 📊 Shift Summary:
+- **Cleared Pilots:** " + Dependency.StatsController.Correct + @"
+- **Total Score:** " + Dependency.StatsController.Score + @" pts
+- **Integrity Level:** 0% (CRITICAL BURNOUT)
+
+### ❌ Incident Report (What Went Wrong):
+" + summary + @"
+
+*Station Alpha has been locked down. Operator must re-certify.*";
+
+			Dependency.ChatController.SetStartShiftButtonText("RETRY SHIFT");
+			Dependency.ChatController.ShiftStartRequestedEvent += OnRestartShift;
+			Dependency.ChatController.ShowBriefing(ratingText);
+		}
+
+		private void TriggerShiftComplete()
+		{
+			SessionStatsController stats = Dependency.StatsController;
+			string rating = "B Rank";
+			if (stats.Mistakes == 0) rating = "S Rank (PERFECT)";
+			else if (stats.Mistakes == 1) rating = "A Rank (OUTSTANDING)";
+
+			string summary = GetMistakesSummary();
+			string ratingText =
+@"# 🛰️ SHIFT COMPLETED
+
+**RATING: " + rating + @"**
+
+Congratulations, Operator. You have successfully completed your shift quota of **8 requests**.
+
+### 📊 Performance Report:
+- **Rating:** " + rating + @"
+- **Cleared Pilots:** " + stats.Correct + @"
+- **Total Score:** " + stats.Score + @" pts
+- **Station Integrity:** " + (100 - (stats.Mistakes * 33)) + @"%
+
+### ❌ Incident Log (What Went Wrong):
+" + (stats.Mistakes == 0 ? "*Perfect run. No incidents recorded.*" : summary) + @"
+
+*Your performance has been transmitted to Sector Command.*";
+
+			Dependency.ChatController.SetStartShiftButtonText("START NEW SHIFT");
+			Dependency.ChatController.ShiftStartRequestedEvent += OnRestartShift;
+			Dependency.ChatController.ShowBriefing(ratingText);
+		}
+
+		private void OnRestartShift()
+		{
+			Dependency.ChatController.ShiftStartRequestedEvent -= OnRestartShift;
+			Dependency.ChatController.HideBriefing();
+			Dependency.StatsController.ResetStats();
+			Dependency.LogController.Clear();
 			FSM_GoToNextState();
+		}
+
+		private string GetMistakesSummary()
+		{
+			if (Dependency.StatsController.MistakeLogs.Count == 0)
+			{
+				return "*No mistakes recorded.*";
+			}
+			return string.Join("\n\n", Dependency.StatsController.MistakeLogs);
 		}
 	}
 }

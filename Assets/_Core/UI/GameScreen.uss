@@ -25,7 +25,11 @@
 }
 
 .app {
-    flex-grow: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     background-color: var(--bg);
     -unity-font-definition: url("../Fonts/SpaceGrotesk-Regular.ttf");
 }
@@ -63,6 +67,7 @@
     background-color: rgba(12, 18, 25, 0.92);
     border-bottom-width: 1px;
     border-bottom-color: var(--border);
+    flex-shrink: 0;
 }
 .topbar-left { flex-direction: row; align-items: center; }
 .station-logo {
@@ -81,10 +86,45 @@
     font-size: 8px; color: var(--fg-muted); letter-spacing: 2px;
     margin: 0; padding: 0; margin-top: -1px;
 }
-.topbar-stats { flex-direction: row; align-items: center; }
-.stat { align-items: center; margin-left: 20px; }
-.stat-value { font-size: 18px; -unity-font-style: bold; color: var(--accent); }
+.topbar-stats { flex-direction: row; align-items: flex-start; padding-top: 4px; }
+.stat-group {
+    align-items: flex-end;
+    margin-left: 20px;
+}
+.stat-header {
+    font-size: 8px;
+    color: var(--fg-muted);
+    letter-spacing: 1px;
+    margin-bottom: -2px;
+}
+.stat-value { font-size: 18px; -unity-font-style: bold; color: var(--accent); margin-top: -3px; }
 .stat-value--danger { color: var(--danger); }
+.stat-value--info { color: var(--info); }
+.integrity-container {
+    align-items: flex-end;
+    margin-left: 24px;
+}
+.integrity-bar {
+    flex-direction: row;
+    margin-top: 8px;
+}
+.integrity-dot {
+    width: 14px;
+    height: 10px;
+    margin-left: 4px;
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: var(--border);
+    flex-shrink: 0;
+}
+.integrity-dot--full {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+.integrity-dot--empty {
+    background-color: rgba(255, 71, 87, 0.15);
+    border-color: var(--danger);
+}
 
 /* ========================= Main split ========================= */
 .main-content { flex-grow: 1; flex-direction: row; }
@@ -141,7 +181,12 @@
 .chat-timer--crit { color: var(--danger); }
 
 /* ---- Messages ---- */
-.chat-messages { flex-grow: 1; padding: 10px 16px; }
+.chat-messages {
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    padding: 10px 16px;
+}
 .msg {
     flex-direction: row; align-items: flex-end;
     max-width: 82%;
@@ -297,7 +342,15 @@
     font-size: 9px; letter-spacing: 3px; color: var(--fg-muted);
     border-bottom-width: 1px; border-bottom-color: var(--border);
 }
-.log-body { flex-grow: 1; padding-left: 24px; padding-right: 24px; padding-top: 4px; padding-bottom: 4px; }
+.log-body {
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
 .log-entry {
     flex-direction: row; margin-top: 1px; margin-bottom: 1px;
     opacity: 0;
@@ -391,6 +444,7 @@
     height: 24px; padding-left: 24px; padding-right: 24px;
     background-color: rgba(12, 18, 25, 0.95);
     border-top-width: 1px; border-top-color: var(--border);
+    flex-shrink: 0;
 }
 .sb-l, .sb-r { flex-direction: row; align-items: center; }
 .sb-l > Label, .sb-r > Label { font-size: 10px; color: var(--fg-muted); margin-right: 18px; }
