@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GMTK_2026
 {
@@ -8,6 +9,8 @@ namespace GMTK_2026
 		private const string Warning = "#ff9f43";
 		private const string Info = "#00d2ff";
 		private const string Danger = "#ff4757";
+		private static readonly Regex MdLink = new Regex(@"\[([^\[\]]+)\]\(([^)]+)\)", RegexOptions.Compiled);
+		private static readonly Regex WikiLink = new Regex(@"\[\[([^\[\]]+)\]\]", RegexOptions.Compiled);
 
 		public static string ToRichText(string source)
 		{
@@ -55,12 +58,22 @@ namespace GMTK_2026
 
 		private static string Keywords(string line)
 		{
-			return line
+			return Links(line)
 				.Replace("BANNED", $"<color={Danger}><b>BANNED</b></color>")
 				.Replace("DENIED", $"<color={Danger}><b>DENIED</b></color>")
 				.Replace("FATAL", $"<color={Danger}><b>FATAL</b></color>")
 				.Replace("PERMITTED", $"<color={Accent}><b>PERMITTED</b></color>")
 				.Replace("REQUIRED", $"<color={Warning}><b>REQUIRED</b></color>");
 		}
+
+		private static string Links(string line)
+		{
+			line = MdLink.Replace(line, m => LinkTag(m.Groups[2].Value.Trim(), m.Groups[1].Value));
+			line = WikiLink.Replace(line, m => LinkTag(m.Groups[1].Value.Trim(), m.Groups[1].Value.Trim()));
+			return line;
+		}
+
+		private static string LinkTag(string target, string text)
+			=> $"<link=\"{target}\"><color={Info}><u>{text}</u></color></link>";
 	}
 }

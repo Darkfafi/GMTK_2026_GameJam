@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.UIElements.Experimental;
 
 namespace GMTK_2026
 {
@@ -21,6 +22,7 @@ namespace GMTK_2026
 		private Label _fcText;
 		private bool _isFileContentOpen;
 		private RaFile _openFile;
+		private readonly List<(List<RaFolder> Path, RaFile File)> _linkHistory = new List<(List<RaFolder>, RaFile)>();
 
 		private readonly List<RaFolder> _path = new List<RaFolder>();
 		private readonly List<RaEntityElement> _rowPool = new List<RaEntityElement>();
@@ -45,6 +47,11 @@ namespace GMTK_2026
 				_backButton.clicked += OnBackClicked;
 			}
 
+			if (_fcText != null)
+			{
+				_fcText.RegisterCallback<PointerUpLinkTagEvent>(OnLinkClicked);
+			}
+
 			CloseFileContent();
 
 			if (_path.Count > 0)
@@ -57,10 +64,109 @@ namespace GMTK_2026
 		{
 			if (_backButton != null)
 				_backButton.clicked -= OnBackClicked;
+
+			if (_fcText != null)
+				_fcText.UnregisterCallback<PointerUpLinkTagEvent>(OnLinkClicked);
+		}
+
+		private void OnLinkClicked(PointerUpLinkTagEvent evt)
+		{
+			OpenLink(evt.linkID);
+		}
+
+		public void OpenLink(string target)
+		{
+			if (string.IsNullOrEmpty(target) || _path.Count == 0)
+			{
+				return;
+			}
+
+			List<RaFolder> chain = new List<RaFolder> { _path[0] };
+			RaFile file = FindFile(_path[0], target, chain);
+			if (file == null)
+			{
+				return;
+			}
+
+			_linkHistory.Add((new List<RaFolder>(_path), _openFile));
+
+			_path.Clear();
+			_path.AddRange(chain);
+			_selected = null;
+			Render();
+			OpenFileContent(file);
+			FolderChangedEvent?.Invoke(CurrentFolder);
+		}
+
+		private static RaFile FindFile(RaFolder folder, string target, List<RaFolder> chain)
+		{
+			int slash = target.IndexOf('/');
+			if (slash >= 0)
+			{
+				string head = target.Substring(0, slash);
+				string rest = target.Substring(slash + 1);
+				for (int i = 0; i < folder.Children.Count; i++)
+				{
+					if (folder.Children[i] is RaFolder sub &&
+						string.Equals(sub.Name, head, StringComparison.OrdinalIgnoreCase))
+					{
+						chain.Add(sub);
+						RaFile viaPath = FindFile(sub, rest, chain);
+						if (viaPath != null)
+						{
+							return viaPath;
+						}
+						chain.RemoveAt(chain.Count - 1);
+					}
+				}
+				return null;
+			}
+
+			for (int i = 0; i < folder.Children.Count; i++)
+			{
+				if (folder.Children[i] is RaFile file &&
+					string.Equals(file.Name, target, StringComparison.OrdinalIgnoreCase))
+				{
+					return file;
+				}
+			}
+
+			for (int i = 0; i < folder.Children.Count; i++)
+			{
+				if (folder.Children[i] is RaFolder sub)
+				{
+					chain.Add(sub);
+					RaFile found = FindFile(sub, target, chain);
+					if (found != null)
+					{
+						return found;
+					}
+					chain.RemoveAt(chain.Count - 1);
+				}
+			}
+
+			return null;
 		}
 
 		private void OnBackClicked()
 		{
+			if (_linkHistory.Count > 0)
+			{
+				(List<RaFolder> path, RaFile file) = _linkHistory[^1];
+				_linkHistory.RemoveAt(_linkHistory.Count - 1);
+
+				_path.Clear();
+				_path.AddRange(path);
+				_selected = null;
+				Render();
+				if (file != null)
+				{
+					OpenFileContent(file);
+				}
+				FolderChangedEvent?.Invoke(CurrentFolder);
+				return;
+			}
+
 			if (_isFileContentOpen)
 			{
 				CloseFileContent();
@@ -118,12 +224,13 @@ namespace GMTK_2026
 		{
 			if (_backButton != null)
 			{
-				_backButton.SetEnabled(_path.Count > 1 || _isFileContentOpen);
+				_backButton.SetEnabled(_path.Count > 1 || _isFileContentOpen || _linkHistory.Count > 0);
 			}
 		}
 
 		public void SetRootFolder(RaFolder rootFolder)
 		{
+			_linkHistory.Clear();
 			_path.Clear();
 			if (rootFolder != null)
 			{
@@ -140,6 +247,7 @@ namespace GMTK_2026
 				return;
 			}
 
+			_linkHistory.Clear();
 			_path.Add(folder);
 			_selected = null;
 			Render();
@@ -153,6 +261,7 @@ namespace GMTK_2026
 				return;
 			}
 
+			_linkHistory.Clear();
 			_path.RemoveAt(_path.Count - 1);
 			_selected = null;
 			Render();
@@ -164,6 +273,7 @@ namespace GMTK_2026
 			if (depth < 0 || depth >= _path.Count - 1)
 				return;
 
+			_linkHistory.Clear();
 			_path.RemoveRange(depth + 1, _path.Count - depth - 1);
 			_selected = null;
 			Render();
@@ -199,7 +309,11 @@ namespace GMTK_2026
 				}
 				else if (_openFile != null && i == _path.Count - 1)
 				{
-					crumb.clicked += CloseFileContent;
+					crumb.clicked += () =>
+					{
+						_linkHistory.Clear();
+						CloseFileContent();
+					};
 				}
 				else
 				{

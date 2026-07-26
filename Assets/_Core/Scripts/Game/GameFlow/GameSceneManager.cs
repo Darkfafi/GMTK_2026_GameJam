@@ -33,6 +33,12 @@ namespace GMTK_2026
 		}
 
 		[field: SerializeField]
+		public ChatController ChatController
+		{
+			get; private set;
+		}
+
+		[field: SerializeField]
 		public ToastUIWindow ToastWindow
 		{
 			get; private set;

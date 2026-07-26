@@ -7,11 +7,9 @@ namespace GMTK_2026
 {
 	public class RequestsController : RaMonoDataHolderBase<RequestsController.CoreData>
 	{
-		public event Action<PilotRequestBase, PlayerChoice> RequestSubmittedEvent;
+		public event Action<PilotRequestBase> RequestAddedEvent;
+		public event Action<PilotRequestBase> RequestRemovedEvent;
 		public event Action<PilotRequestBase> RequestExpiredEvent;
-
-		[SerializeField]
-		private RequestsUIWindow _uiWindow = null;
 
 		private readonly List<PilotRequestBase> _activeRequests = new List<PilotRequestBase>();
 		private readonly List<PilotRequestBase> _expiredThisTick = new List<PilotRequestBase>();
@@ -20,9 +18,6 @@ namespace GMTK_2026
 
 		protected override void OnSetData()
 		{
-			_uiWindow.RequestApprovedEvent += OnRequestApproved;
-			_uiWindow.RequestDeniedEvent += OnRequestDenied;
-
 			if (Data.Request != null)
 			{
 				AddRequest(Data.Request);
@@ -31,14 +26,10 @@ namespace GMTK_2026
 
 		protected override void OnClearData()
 		{
-			_uiWindow.RequestApprovedEvent -= OnRequestApproved;
-			_uiWindow.RequestDeniedEvent -= OnRequestDenied;
-
 			for (int i = _activeRequests.Count - 1; i >= 0; i--)
 			{
-				_uiWindow.RemoveRequest(_activeRequests[i]);
+				RemoveRequest(_activeRequests[i]);
 			}
-			_activeRequests.Clear();
 		}
 
 		public void AddRequest(PilotRequestBase request)
@@ -49,7 +40,7 @@ namespace GMTK_2026
 			}
 
 			_activeRequests.Add(request);
-			_uiWindow.AddRequest(request);
+			RequestAddedEvent?.Invoke(request);
 		}
 
 		public void RemoveRequest(PilotRequestBase request)
@@ -59,12 +50,7 @@ namespace GMTK_2026
 				return;
 			}
 
-			_uiWindow.RemoveRequest(request);
-		}
-
-		public void ShowResult(PilotRequestBase request, bool correct, string message)
-		{
-			_uiWindow.ShowResult(request, correct, message);
+			RequestRemovedEvent?.Invoke(request);
 		}
 
 		private void Update()
@@ -85,10 +71,7 @@ namespace GMTK_2026
 					continue;
 				}
 
-				bool justExpired = request.TickTime(deltaTime);
-				_uiWindow.SetTimeNormalized(request, request.TimeNormalized);
-
-				if (justExpired)
+				if (request.TickTime(deltaTime))
 				{
 					_expiredThisTick.Add(request);
 				}
@@ -99,9 +82,6 @@ namespace GMTK_2026
 				RequestExpiredEvent?.Invoke(_expiredThisTick[i]);
 			}
 		}
-
-		private void OnRequestApproved(PilotRequestBase request) => RequestSubmittedEvent?.Invoke(request, PlayerChoice.Approved);
-		private void OnRequestDenied(PilotRequestBase request) => RequestSubmittedEvent?.Invoke(request, PlayerChoice.Denied);
 
 		public struct CoreData
 		{

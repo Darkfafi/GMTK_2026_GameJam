@@ -41,14 +41,29 @@
                 <ui:Instance template="RaFileSystem" class="game-screen__fill" />
             </ui:VisualElement>
 
-            <!-- Right: requests + log -->
+            <!-- Right: transmission chat + log -->
             <ui:VisualElement name="request-panel" class="request-panel">
-                <ui:VisualElement class="req-header">
-                    <ui:Label text="INCOMING REQUEST" class="req-header-title" />
-                    <ui:Label name="req-count" text="" class="req-count" />
+                <ui:VisualElement class="chat-header">
+                    <ui:VisualElement class="chat-header__left">
+                        <ui:VisualElement name="chat-signal" class="chat-signal" />
+                        <ui:Label name="chat-id" text="STANDBY" class="chat-id" />
+                    </ui:VisualElement>
+                    <ui:Label name="chat-timer" text="--:--" class="chat-timer" />
                 </ui:VisualElement>
 
-                <ui:ScrollView name="req-list" class="req-list" />
+                <ui:ScrollView name="chat-messages" class="chat-messages" />
+
+                <ui:VisualElement name="chat-typing" class="chat-typing msg" />
+
+                <ui:VisualElement class="chat-input-row">
+                    <ui:TextField name="chat-input" class="chat-input" />
+                    <ui:Button name="chat-send" text="➤" class="chat-send" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="chat-actions">
+                    <ui:Button name="chat-access" text="ACCESS" class="req-btn req-btn--approve" />
+                    <ui:Button name="chat-decline" text="DECLINE" class="req-btn req-btn--deny" />
+                </ui:VisualElement>
 
                 <ui:VisualElement class="log-sec">
                     <ui:Label text="OPERATION LOG" class="log-head" />

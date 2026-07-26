@@ -36,10 +36,9 @@
 .sb-text,
 .log-t,
 .log-m,
-.req-count,
-.cd-num,
-.entity-view__row-val,
-.result-bar {
+.chat-id,
+.chat-timer,
+.msg--sys > .msg-b {
     -unity-font-definition: url("../Fonts/JetBrainsMono-Regular.ttf");
 }
 
@@ -121,103 +120,109 @@
     flex-grow: 1;
     background-color: rgba(6, 10, 16, 0.5);
 }
-.req-header {
+/* ---- Chat header (signal bars + request id + countdown) ---- */
+.chat-header {
     flex-direction: row; align-items: center; justify-content: space-between;
-    height: 40px; padding-left: 24px; padding-right: 24px;
+    height: 40px; padding-left: 18px; padding-right: 18px;
     background-color: rgba(0, 0, 0, 0.25);
     border-bottom-width: 1px; border-bottom-color: var(--border);
 }
-.req-header-title {
-    font-size: 10px; letter-spacing: 3px; color: var(--fg-muted);
+.chat-header__left { flex-direction: row; align-items: center; }
+.chat-signal { flex-direction: row; align-items: flex-end; margin-right: 10px; }
+.sig-bar {
+    width: 3px; margin-right: 2px; border-radius: 1px;
+    background-color: var(--border);
+    transition-property: background-color; transition-duration: 0.5s;
 }
-.req-count { font-size: 11px; color: var(--fg-muted); }
-.req-list { flex-grow: 1; padding-left: 12px; padding-right: 12px; }
-.req-empty-label {
-    -unity-text-align: middle-center; color: var(--fg-muted);
-    font-size: 13px; padding-top: 24px;
-}
+.sig-bar--on { background-color: var(--accent); }
+.chat-id { font-size: 10px; color: var(--fg-muted); }
+.chat-timer { font-size: 16px; -unity-font-style: bold; color: rgb(255, 255, 255); }
+.chat-timer--warn { color: var(--warning); }
+.chat-timer--crit { color: var(--danger); }
 
-/* ========================= Request card ========================= */
-.req-card {
-    background-color: var(--card);
-    border-width: 1px; border-color: var(--border); border-radius: 12px;
-    padding: 12px;
-    margin-top: 8px; margin-bottom: 4px;
-    /* accent top edge (stand-in for the mockup's animated shimmer bar) */
-    border-top-width: 3px; border-top-color: var(--accent);
+/* ---- Messages ---- */
+.chat-messages { flex-grow: 1; padding: 10px 16px; }
+.msg {
+    flex-direction: row; align-items: flex-end;
+    max-width: 82%;
+    margin-top: 4px; margin-bottom: 4px;
+    align-self: flex-start;
+    opacity: 0; translate: 0 8px;
+    transition-property: opacity, translate; transition-duration: 0.25s;
+    transition-timing-function: ease-out;
 }
-.req-card__titlerow {
-    flex-direction: row; align-items: flex-start; justify-content: space-between;
-    margin-bottom: 6px;
-}
-.req-card__title { font-size: 16px; -unity-font-style: bold; color: rgb(255, 255, 255); flex-grow: 1; }
-.req-card__badge {
-    font-size: 9px; letter-spacing: 2px; color: var(--accent);
-    background-color: rgba(0, 255, 136, 0.12);
-    border-width: 1px; border-color: rgba(0, 255, 136, 0.2); border-radius: 4px;
-    padding: 3px 9px; margin-left: 12px;
-}
-.req-card__desc {
-    font-size: 12px; color: var(--fg-muted); white-space: normal; margin-bottom: 8px;
-}
-
-/* countdown box */
-.cd-box {
-    flex-direction: row; align-items: center;
-    padding: 7px 12px; margin-bottom: 8px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-width: 1px; border-color: var(--border); border-radius: 8px;
-}
-.cd-ring { width: 36px; height: 36px; margin-right: 12px; }
-.cd-num {
-    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
-    -unity-text-align: middle-center; font-size: 13px; -unity-font-style: bold;
-    color: rgb(255, 255, 255);
-}
-.cd-info { flex-grow: 1; }
-.cd-label { font-size: 9px; letter-spacing: 2px; color: var(--fg-muted); margin-bottom: 1px; }
-.cd-status { font-size: 11px; color: var(--accent); }
-.cd-status--warn { color: var(--warning); }
-.cd-status--crit { color: var(--danger); }
-
-/* detail cards (the request body — pilot / planet / ship) */
-.req-card__body { margin-bottom: 8px; }
-.request-view--landing { flex-direction: row; flex-wrap: wrap; }
-
-.entity-view {
-    flex-grow: 1; flex-basis: 30%; min-width: 120px;
-    background-color: rgba(0, 0, 0, 0.28);
-    border-width: 1px; border-color: var(--border); border-radius: 8px;
-    padding: 8px; margin-right: 6px; margin-bottom: 6px;
-}
-.entity-view__head {
-    flex-direction: row; align-items: center;
-    padding-bottom: 5px; margin-bottom: 6px;
-    border-bottom-width: 1px; border-bottom-color: var(--border);
-}
-.entity-view__ico {
-    width: 22px; height: 22px; border-radius: 4px;
+.msg--in { opacity: 1; translate: 0 0; }
+.msg--op { align-self: flex-end; flex-direction: row-reverse; }
+.msg--sys { align-self: center; max-width: 100%; }
+.msg-av {
+    width: 26px; height: 26px; border-radius: 13px;
     -unity-text-align: middle-center; font-size: 11px;
-    margin-right: 6px;
+    margin-right: 8px; flex-shrink: 0;
 }
-.entity-view__ico--pilot { background-color: rgba(0, 210, 255, 0.12); color: var(--info); }
-.entity-view__ico--planet { background-color: rgba(255, 159, 67, 0.12); color: var(--warning); }
-.entity-view__ico--ship { background-color: rgba(0, 255, 136, 0.12); color: var(--accent); }
-.entity-view__kind {
-    font-size: 10px; letter-spacing: 2px; color: var(--fg-muted);
+.msg--op > .msg-av { margin-right: 0; margin-left: 8px; background-color: rgba(0, 255, 136, 0.12); }
+.msg--pilot > .msg-av { background-color: rgba(0, 210, 255, 0.12); }
+.msg-b {
+    padding: 8px 12px; border-radius: 10px;
+    font-size: 12px; color: var(--fg); white-space: normal;
 }
-.entity-view__row { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 3px; }
-.entity-view__row-key { font-size: 11px; color: var(--fg-muted); }
-.entity-view__row-val { font-size: 11px; color: rgb(255, 255, 255); -unity-font-style: bold; }
-.tag-chip {
-    font-size: 11px; color: var(--fg);
-    background-color: rgba(0, 0, 0, 0.35);
-    border-width: 1px; border-color: var(--border); border-radius: 9px;
-    padding: 1px 8px; margin-right: 4px; margin-bottom: 4px;
+.msg--pilot > .msg-b {
+    background-color: var(--card);
+    border-width: 1px; border-color: var(--border);
+    border-bottom-left-radius: 3px;
 }
+.msg--op > .msg-b {
+    background-color: rgba(0, 255, 136, 0.1);
+    border-width: 1px; border-color: rgba(0, 255, 136, 0.18);
+    border-bottom-right-radius: 3px;
+}
+.msg--sys > .msg-b {
+    background-color: rgba(0, 0, 0, 0); border-width: 0;
+    color: var(--fg-muted); font-size: 10px;
+    -unity-text-align: middle-center;
+}
+
+/* ---- Typing indicator row ---- */
+.chat-typing { display: none; padding-left: 16px; margin-bottom: 4px; opacity: 1; translate: 0 0; }
+.typing-bubble {
+    flex-direction: row; align-items: center;
+    padding: 9px 12px;
+    background-color: var(--card);
+    border-width: 1px; border-color: var(--border);
+    border-radius: 10px; border-bottom-left-radius: 3px;
+}
+.typing-bubble__dot {
+    width: 5px; height: 5px; border-radius: 3px;
+    background-color: var(--fg-muted); margin-right: 3px;
+}
+
+/* ---- Input + actions ---- */
+.chat-input-row {
+    flex-direction: row; align-items: center;
+    padding: 8px 16px 6px;
+    border-top-width: 1px; border-top-color: var(--border);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.chat-input { flex-grow: 1; margin: 0 8px 0 0; }
+.chat-input > .unity-text-field__input {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-width: 1px; border-color: var(--border); border-radius: 6px;
+    color: var(--fg); font-size: 12px;
+    padding: 7px 12px;
+    transition-property: border-color; transition-duration: 0.2s;
+    --unity-cursor-color: var(--accent);
+    --unity-selection-color: rgba(0, 255, 136, 0.25);
+}
+.chat-input > .unity-text-field__input:focus { border-color: rgba(0, 255, 136, 0.35); }
+.chat-send {
+    width: 44px; height: 30px;
+    background-color: rgba(0, 255, 136, 0.12);
+    border-width: 1px; border-color: rgba(0, 255, 136, 0.2); border-radius: 6px;
+    color: var(--accent); font-size: 13px;
+}
+.chat-send:hover { background-color: rgba(0, 255, 136, 0.2); border-color: var(--accent); }
+.chat-actions { flex-direction: row; padding: 6px 16px 10px; }
 
 /* action buttons */
-.req-card__actions { flex-direction: row; }
 .req-btn {
     flex-grow: 1; height: 30px; margin-right: 10px;
     border-width: 1px; border-radius: 8px;
@@ -239,31 +244,9 @@
 .req-btn--deny:hover { background-color: rgba(255, 71, 87, 0.22); border-color: var(--danger); }
 .req-btn:disabled { opacity: 0.4; }
 
-.req-card__result {
-    position: absolute;
-    left: 12px; right: 12px; bottom: 12px;
-    justify-content: center;
-}
-.result-bar {
-    padding: 7px 12px;
-    border-radius: 8px; border-width: 1px;
-    font-size: 11px; white-space: normal;
-    -unity-text-align: middle-center;
-}
-.result-bar--ok {
-    background-color: rgb(13, 34, 26);
-    border-color: rgba(0, 255, 136, 0.35);
-    color: var(--accent);
-}
-.result-bar--err {
-    background-color: rgb(38, 18, 21);
-    border-color: rgba(255, 71, 87, 0.35);
-    color: var(--danger);
-}
-
 /* ========================= Operation Log ========================= */
 .log-sec {
-    height: 210px;
+    height: 150px;
     border-top-width: 1px; border-top-color: var(--border);
     background-color: rgba(0, 0, 0, 0.3);
 }

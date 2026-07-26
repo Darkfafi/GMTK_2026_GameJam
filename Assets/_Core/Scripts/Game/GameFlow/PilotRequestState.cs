@@ -6,14 +6,16 @@ namespace GMTK_2026
 	public class PilotRequestState : GameSceneStateBase
 	{
 		[SerializeField]
-		private float _resultDisplaySeconds = 2.2f;
+		private float _resultDisplaySeconds = 3f;
 
 		[SerializeField]
-		private float _requestTimeLimit = 30f;
+		private float _requestTimeLimit = 120f;
 
 		private static readonly string[] PilotNames = { "Bob", "Zara", "Krix", "Reyes", "Nexus-7", "Vex", "Grok", "Sarah", "Unit-12", "Zyx" };
 		private static readonly string[] PlanetNames = { "Sol", "Europa", "Titan", "Kepler-442b", "Vesta Prime", "Nyx-3" };
 		private static readonly string[] ShipNames = { "Star Hopper", "Ice Breaker", "Dark Freighter", "ISV Vanguard", "Haul Master", "Deep Probe", "Pathfinder II" };
+
+		private LandingPilotRequest _request;
 
 		protected override void OnInit()
 		{
@@ -27,21 +29,26 @@ namespace GMTK_2026
 
 		protected override void OnEnter()
 		{
-			Dependency.RequestsController.RequestSubmittedEvent += OnRequestSubmitted;
+			Dependency.ChatController.DecisionMadeEvent += OnDecisionMade;
 			Dependency.RequestsController.RequestExpiredEvent += OnRequestExpired;
+
+			_request = CreateRandomRequest();
 
 			Dependency.RequestsController.SetData(new RequestsController.CoreData()
 			{
-				Request = CreateRandomRequest()
+				Request = _request
 			});
+			Dependency.ChatController.StartConversation(_request);
 		}
 
 		protected override void OnExit(bool isSwitch)
 		{
 			StopAllCoroutines();
-			Dependency.RequestsController.RequestSubmittedEvent -= OnRequestSubmitted;
+			Dependency.ChatController.DecisionMadeEvent -= OnDecisionMade;
 			Dependency.RequestsController.RequestExpiredEvent -= OnRequestExpired;
+			Dependency.ChatController.EndConversation();
 			Dependency.RequestsController.ClearData();
+			_request = null;
 		}
 
 		private LandingPilotRequest CreateRandomRequest()
@@ -60,29 +67,31 @@ namespace GMTK_2026
 
 		private static T Pick<T>(T[] options) => options[Random.Range(0, options.Length)];
 
-		private void OnRequestSubmitted(PilotRequestBase request, PlayerChoice choice)
+		private void OnDecisionMade(PlayerChoice choice)
 		{
-			if (request.IsResolved)
+			if (_request == null || _request.IsResolved)
 			{
 				return;
 			}
-			request.Resolve();
+			_request.Resolve();
 
-			RequestVerdict verdict = request.Evaluate();
+			RequestVerdict verdict = _request.Evaluate();
 			bool playerApproved = choice == PlayerChoice.Approved;
 			bool correct = playerApproved == verdict.IsApproved;
 
-			string pilot = request.Pilot?.Name;
-			string decision = choice == PlayerChoice.Approved ? "ACCESS" : "DECLINE";
+			string pilot = _request.Pilot?.Name;
+			string decision = playerApproved ? "ACCESS" : "DECLINE";
 			string why = verdict.IsApproved
-				? "All checks passed."
+				? "All survival checks passed."
 				: string.Join(" ", verdict.Reasons);
+
+			Dependency.ChatController.ShowSystemMessage(
+				$"— {decision} — Clearance {(playerApproved ? "GRANTED" : "DENIED")} —");
 
 			if (correct)
 			{
 				Dependency.StatsController.RegisterCorrect();
 				Dependency.LogController.Log($"{pilot} — {decision} — Correct", LogLevel.Accent);
-				Dependency.RequestsController.ShowResult(request, true, $"✓ CORRECT — {why}");
 				Dependency.ToastWindow.Show("Correct decision", ToastType.Ok);
 			}
 			else
@@ -90,16 +99,15 @@ namespace GMTK_2026
 				Dependency.StatsController.RegisterIncorrect();
 				Dependency.LogController.Log($"{pilot} — {decision} — WRONG", LogLevel.Danger);
 				Dependency.LogController.Log($"Reason: {why}", LogLevel.Warning);
-				Dependency.RequestsController.ShowResult(request, false, $"✗ WRONG — {why}");
 				Dependency.ToastWindow.Show("Wrong decision — see log", ToastType.Error);
 			}
 
-			StartCoroutine(FinishAfterDelay(request));
+			FinishRequest(choice, timedOut: false);
 		}
 
 		private void OnRequestExpired(PilotRequestBase request)
 		{
-			if (request.IsResolved)
+			if (request != _request || request.IsResolved)
 			{
 				return;
 			}
@@ -108,19 +116,29 @@ namespace GMTK_2026
 			RequestVerdict verdict = request.Evaluate();
 			string correctAction = verdict.IsApproved ? "ACCESS" : "DECLINE";
 
+			Dependency.ChatController.ShowSystemMessage("— Transmission timed out — auto-declined —");
 			Dependency.StatsController.RegisterIncorrect();
 			Dependency.LogController.Log($"{request.Pilot?.Name} — request timed out", LogLevel.Warning);
-			Dependency.RequestsController.ShowResult(request, false, $"⏱ TIMED OUT — correct action was {correctAction}");
+			Dependency.LogController.Log($"Correct action was {correctAction}", LogLevel.Info);
 			Dependency.ToastWindow.Show("Request timed out", ToastType.Error);
 
-			StartCoroutine(FinishAfterDelay(request));
+			FinishRequest(PlayerChoice.Denied, timedOut: true);
 		}
 
-		private IEnumerator FinishAfterDelay(PilotRequestBase request)
+		private void FinishRequest(PlayerChoice choice, bool timedOut)
+		{
+			// Freeze input, let the pilot get their parting line in, then move on.
+			Dependency.ChatController.ShowDecisionReaction(choice, timedOut);
+			Dependency.ChatController.EndConversationInputOnly();
+			StartCoroutine(NextRequestAfterDelay());
+		}
+
+		private IEnumerator NextRequestAfterDelay()
 		{
 			yield return new WaitForSeconds(_resultDisplaySeconds);
 
-			Dependency.RequestsController.RemoveRequest(request);
+			Dependency.ChatController.EndConversation();
+			Dependency.RequestsController.RemoveRequest(_request);
 			FSM_GoToNextState();
 		}
 	}

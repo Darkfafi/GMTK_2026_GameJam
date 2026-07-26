@@ -54,11 +54,11 @@ namespace GMTK_2026
 Every landing request must be verified against station records before responding.
 
 ## Verification Procedure
-- Identify the pilot's species in the species registry
-- Identify the planet's body type in the celestial bodies index
+- Identify the pilot's species in the [species registry](species_registry.md)
+- Identify the planet's body type in the [celestial bodies index](celestial_bodies.md)
 - Compare: every REQUIRED condition of the species must be present on the planet
 - Any FATAL condition present on the planet means landing is DENIED
-- Check occupation permits — certified equipment can negate specific hazards
+- Check [occupation permits](occupation_permits.md) — certified equipment can negate specific hazards
 
 ## Rulings
 - All requirements met, no fatal exposure: landing PERMITTED
@@ -169,7 +169,8 @@ This terminal contains all operational data needed to process incoming landing r
 
 ## Your Responsibility
 You are the final authority on landing approvals.
-Check the rules carefully before deciding.
+Start with the [landing protocols](landing_protocols.md) and
+check the rules carefully before deciding.
 
 When in doubt, check the files.";
 		}
