@@ -12,6 +12,10 @@ namespace GMTK_2026
 		private static readonly Regex MdLink = new Regex(@"\[([^\[\]]+)\]\(([^)]+)\)", RegexOptions.Compiled);
 		private static readonly Regex WikiLink = new Regex(@"\[\[([^\[\]]+)\]\]", RegexOptions.Compiled);
 
+		private static readonly Regex Bold = new Regex(@"\*\*(.+?)\*\*", RegexOptions.Compiled);
+		private static readonly Regex ItalicUnderscore = new Regex(@"(?<![A-Za-z0-9_])_(?!_)(.+?)(?<!_)_(?![A-Za-z0-9_])", RegexOptions.Compiled);
+		private static readonly Regex ItalicStar = new Regex(@"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", RegexOptions.Compiled);
+
 		public static string ToRichText(string source)
 		{
 			if (string.IsNullOrEmpty(source))
@@ -70,6 +74,14 @@ namespace GMTK_2026
 		{
 			line = MdLink.Replace(line, m => LinkTag(m.Groups[2].Value.Trim(), m.Groups[1].Value));
 			line = WikiLink.Replace(line, m => LinkTag(m.Groups[1].Value.Trim(), m.Groups[1].Value.Trim()));
+			return Emphasis(line);
+		}
+
+		private static string Emphasis(string line)
+		{
+			line = Bold.Replace(line, "<b>$1</b>");
+			line = ItalicUnderscore.Replace(line, "<i>$1</i>");
+			line = ItalicStar.Replace(line, "<i>$1</i>");
 			return line;
 		}
 

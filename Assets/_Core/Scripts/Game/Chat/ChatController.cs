@@ -7,6 +7,7 @@ namespace GMTK_2026
 	public class ChatController : MonoBehaviour
 	{
 		public event Action<PlayerChoice> DecisionMadeEvent;
+		public event Action ShiftStartRequestedEvent;
 
 		[SerializeField]
 		private ChatUIWindow _uiWindow = null;
@@ -25,6 +26,7 @@ namespace GMTK_2026
 			_uiWindow.MessageSubmittedEvent += OnMessageSubmitted;
 			_uiWindow.AccessClickedEvent += OnAccessClicked;
 			_uiWindow.DeclineClickedEvent += OnDeclineClicked;
+			_uiWindow.StartShiftClickedEvent += OnStartShiftClicked;
 		}
 
 		private void OnDisable()
@@ -32,7 +34,35 @@ namespace GMTK_2026
 			_uiWindow.MessageSubmittedEvent -= OnMessageSubmitted;
 			_uiWindow.AccessClickedEvent -= OnAccessClicked;
 			_uiWindow.DeclineClickedEvent -= OnDeclineClicked;
+			_uiWindow.StartShiftClickedEvent -= OnStartShiftClicked;
 		}
+
+		public void ShowBriefing()
+		{
+			_uiWindow.SetInteractable(false);
+			_uiWindow.ShowBriefing(true, BriefingText);
+		}
+
+		public void HideBriefing()
+		{
+			_uiWindow.ShowBriefing(false);
+		}
+
+		private void OnStartShiftClicked() => ShiftStartRequestedEvent?.Invoke();
+
+		private const string BriefingText =
+			"Pilots will hail you requesting landing clearance. <b>They will not tell you everything.</b>\n\n" +
+			"<b>Interrogate them.</b> Ask what species they are, where they are from, what gear " +
+			"they carry, what they are flying and where they are going. Not every pilot knows " +
+			"their own details — some can only describe things.\n\n" +
+			"<b>Verify in the file system.</b> The terminal on the left is yours to explore right " +
+			"now. Start with <color=#00ff88>readme.md</color>, then the landing protocols. " +
+			"A landing needs four conditions met — <color=#00ff88>pressure</color>, " +
+			"<color=#00ff88>gravity</color>, <color=#00ff88>temperature</color> and " +
+			"<color=#00ff88>composition</color> — plus a hull rated for the descent.\n\n" +
+			"<b>Make the call.</b> Access or Decline before the transmission times out. " +
+			"<color=#ff4757>A timeout counts against you.</color>\n\n" +
+			"Take your time reading. The shift starts when you say so.";
 
 		public void StartConversation(LandingPilotRequest request)
 		{

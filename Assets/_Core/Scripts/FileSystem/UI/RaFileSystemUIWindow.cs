@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
@@ -297,7 +298,22 @@ namespace GMTK_2026
 		{
 			_breadcrumb.Clear();
 
-			for (int i = 0; i < _path.Count; i++)
+			int maxFolderCrumbs = _openFile != null ? 2 : 3;
+			int firstVisible = Mathf.Max(0, _path.Count - maxFolderCrumbs);
+
+			if (firstVisible > 0)
+			{
+				var rootCrumb = new Button { text = "…" };
+				rootCrumb.AddToClassList("ra-crumb");
+				rootCrumb.clicked += () => NavigateToDepth(0);
+				_breadcrumb.Add(rootCrumb);
+
+				var rootSeparator = new Label("›");
+				rootSeparator.AddToClassList("ra-crumb-separator");
+				_breadcrumb.Add(rootSeparator);
+			}
+
+			for (int i = firstVisible; i < _path.Count; i++)
 			{
 				bool isCurrent = i == _path.Count - 1 && _openFile == null;
 
@@ -344,7 +360,11 @@ namespace GMTK_2026
 		{
 			_contents.Clear();
 
-			IReadOnlyList<RaFileSystemItemBase> children = CurrentFolder?.Children;
+			List<RaFileSystemItemBase> children = CurrentFolder?.Children
+				.OrderBy(item => item is RaFolder ? 0 : 1)
+				.ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+				.ToList();
+				
 			int count = children?.Count ?? 0;
 
 			if (count == 0)

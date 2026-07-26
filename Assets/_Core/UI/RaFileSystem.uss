@@ -67,8 +67,9 @@
 .ra-breadcrumb {
     flex-direction: row;
     flex-grow: 1;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
+    overflow: hidden;
 }
 
 .ra-crumb {

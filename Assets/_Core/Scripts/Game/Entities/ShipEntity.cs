@@ -6,6 +6,8 @@ namespace GMTK_2026
 	{
 		public HashSet<TagBase> LifeSupport => Profile.Provides;
 
+		public ShipAspect Class => GetAspect<ShipAspect>();
+
 		public ShipEntity(string name, params TagBase[] lifeSupport)
 			: base(name)
 		{

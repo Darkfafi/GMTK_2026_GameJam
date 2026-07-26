@@ -17,6 +17,7 @@ namespace GMTK_2026
 			SetDependency(DependencyKeys.Ship, ship);
 
 			AddRequirement(new SurvivalRequirement());
+			AddRequirement(new HullIntegrityRequirement());
 		}
 	}
 }

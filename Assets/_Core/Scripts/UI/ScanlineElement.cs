@@ -21,7 +21,7 @@ namespace GMTK_2026
 			}
 
 			Painter2D p = ctx.painter2D;
-			p.strokeColor = new Color(0f, 1f, 0.53f, 0.012f);
+			p.strokeColor = new Color(0f, 1f, 0.53f, 0.005f);
 			p.lineWidth = 1f;
 
 			for (float y = 0f; y < r.height; y += 4f)

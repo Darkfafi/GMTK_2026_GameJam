@@ -7,10 +7,13 @@ namespace GMTK_2026
 	{
 		Name,
 		Species,
+		Origin,
+		Equipment,
 		Occupation,
 		Destination,
 		Body,
 		ShipName,
+		ShipClass,
 		Needs,
 		Health,
 		Purpose,
@@ -25,8 +28,10 @@ namespace GMTK_2026
 		public static readonly HashSet<ChatTopic> CriticalTopics = new HashSet<ChatTopic>
 		{
 			ChatTopic.Species,
-			ChatTopic.Body,
-			ChatTopic.Occupation,
+			ChatTopic.Origin,
+			ChatTopic.Equipment,
+			ChatTopic.Destination,
+			ChatTopic.ShipClass,
 		};
 
 		public LandingPilotRequest Request { get; }
@@ -61,10 +66,17 @@ namespace GMTK_2026
 			Cooperation = Random.Range(0.3f, 0.95f);
 			Nervousness = Random.Range(0f, 0.8f);
 
-			// Everyone knows their own name and where they're headed.
+			// Always Known
 			_knowledge[ChatTopic.Name] = 1f;
 			_knowledge[ChatTopic.Destination] = 1f;
+			_knowledge[ChatTopic.Origin] = 1f;
 			_knowledge[ChatTopic.ShipName] = RollKnowledge(0.85f, 0.05f);
+
+			// Pilots can see the gear they packed
+			_knowledge[ChatTopic.Equipment] = RollKnowledge(0.85f, 0.15f);
+
+			// Not everyone knows what class of hull they were handed.
+			_knowledge[ChatTopic.ShipClass] = RollKnowledge(0.7f, 0.15f);
 
 			// The research-relevant topics: often known, sometimes vague, sometimes
 			// only describable - forcing the operator to match the description

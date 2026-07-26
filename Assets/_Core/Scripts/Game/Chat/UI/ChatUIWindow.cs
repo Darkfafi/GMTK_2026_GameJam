@@ -16,6 +16,7 @@ namespace GMTK_2026
 		public event Action<string> MessageSubmittedEvent;
 		public event Action AccessClickedEvent;
 		public event Action DeclineClickedEvent;
+		public event Action StartShiftClickedEvent;
 
 		[SerializeField]
 		private UIDocument _document = null;
@@ -29,6 +30,9 @@ namespace GMTK_2026
 		private Button _send;
 		private Button _access;
 		private Button _decline;
+		private VisualElement _briefing;
+		private Label _briefingBody;
+		private Button _startShift;
 
 		private readonly VisualElement[] _signalBars = new VisualElement[5];
 
@@ -45,6 +49,14 @@ namespace GMTK_2026
 			_send = root.Q<Button>("chat-send");
 			_access = root.Q<Button>("chat-access");
 			_decline = root.Q<Button>("chat-decline");
+			_briefing = root.Q<VisualElement>("chat-briefing");
+			_briefingBody = root.Q<Label>("briefing-body");
+			_startShift = root.Q<Button>("chat-start-shift");
+
+			if (_startShift != null)
+			{
+				_startShift.clicked += OnStartShiftClicked;
+			}
 
 			BuildSignalBars();
 			BuildTypingBubble();
@@ -84,6 +96,10 @@ namespace GMTK_2026
 			if (_decline != null)
 			{
 				_decline.clicked -= OnDeclineClicked;
+			}
+			if (_startShift != null)
+			{
+				_startShift.clicked -= OnStartShiftClicked;
 			}
 			if (_input != null)
 			{
@@ -265,6 +281,20 @@ namespace GMTK_2026
 
 		private void OnAccessClicked() => AccessClickedEvent?.Invoke();
 		private void OnDeclineClicked() => DeclineClickedEvent?.Invoke();
+		private void OnStartShiftClicked() => StartShiftClickedEvent?.Invoke();
+
+		public void ShowBriefing(bool show, string body = null)
+		{
+			if (_briefing != null)
+			{
+				_briefing.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+			if (show && body != null && _briefingBody != null)
+			{
+				_briefingBody.enableRichText = true;
+				_briefingBody.text = body;
+			}
+		}
 
 		private void BuildSignalBars()
 		{

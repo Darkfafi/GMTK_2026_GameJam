@@ -69,6 +69,16 @@
                     <ui:Label text="OPERATION LOG" class="log-head" />
                     <ui:ScrollView name="log-body" class="log-body" />
                 </ui:VisualElement>
+
+                <ui:VisualElement name="chat-briefing" class="chat-briefing">
+                    <ui:Label text="🛰" class="briefing-icon" />
+                    <ui:Label text="OPERATOR BRIEFING" class="briefing-title" />
+                    <ui:Label text="Station Alpha — Landing Control Division" class="briefing-sub" />
+                    <ui:ScrollView name="briefing-scroll" class="briefing-scroll">
+                        <ui:Label name="briefing-body" class="briefing-body" />
+                    </ui:ScrollView>
+                    <ui:Button name="chat-start-shift" text="START SHIFT" class="briefing-button" />
+                </ui:VisualElement>
             </ui:VisualElement>
 
         </ui:VisualElement>

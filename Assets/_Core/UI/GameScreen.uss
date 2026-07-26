@@ -195,6 +195,48 @@
     background-color: var(--fg-muted); margin-right: 3px;
 }
 
+.chat-briefing {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgb(8, 12, 18);
+    align-items: center;
+    justify-content: center;
+    padding: 22px 26px;
+}
+.briefing-icon {
+    font-size: 28px; color: var(--accent);
+    opacity: 0.75; margin-bottom: 8px;
+}
+.briefing-title {
+    font-size: 18px; -unity-font-style: bold;
+    color: rgb(255, 255, 255); letter-spacing: 1px;
+}
+.briefing-sub {
+    font-size: 11px; color: var(--fg-muted);
+    letter-spacing: 1px; margin-bottom: 14px;
+}
+.briefing-scroll {
+    flex-grow: 1; width: 100%;
+    margin-bottom: 14px;
+}
+.briefing-body {
+    font-size: 12px; color: var(--fg);
+    white-space: normal;
+}
+.briefing-button {
+    height: 38px; padding-left: 30px; padding-right: 30px;
+    background-color: rgba(0, 255, 136, 0.1);
+    border-width: 1px; border-color: rgba(0, 255, 136, 0.3);
+    border-radius: 7px;
+    color: var(--accent);
+    font-size: 13px; -unity-font-style: bold; letter-spacing: 2px;
+    transition-duration: 0.2s;
+}
+.briefing-button:hover {
+    background-color: rgba(0, 255, 136, 0.22);
+    border-color: var(--accent);
+}
+
 /* ---- Input + actions ---- */
 .chat-input-row {
     flex-direction: row; align-items: center;

@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GMTK_2026
@@ -9,10 +11,9 @@ namespace GMTK_2026
 		private float _resultDisplaySeconds = 3f;
 
 		[SerializeField]
-		private float _requestTimeLimit = 120f;
+		private float _requestTimeLimit = 180f;
 
-		private static readonly string[] PilotNames = { "Bob", "Zara", "Krix", "Reyes", "Nexus-7", "Vex", "Grok", "Sarah", "Unit-12", "Zyx" };
-		private static readonly string[] PlanetNames = { "Sol", "Europa", "Titan", "Kepler-442b", "Vesta Prime", "Nyx-3" };
+		private static readonly string[] PilotNames = { "Bob", "Zara", "Krix", "Reyes", "Nexus-7", "Vex", "Grok", "Sarah", "Unit-12", "Zyx", "Marla", "Oto", "Ferren", "Sil" };
 		private static readonly string[] ShipNames = { "Star Hopper", "Ice Breaker", "Dark Freighter", "ISV Vanguard", "Haul Master", "Deep Probe", "Pathfinder II" };
 
 		private LandingPilotRequest _request;
@@ -53,16 +54,73 @@ namespace GMTK_2026
 
 		private LandingPilotRequest CreateRandomRequest()
 		{
+			SpeciesAspect species = Pick(GameCatalog.Species);
+
 			CreatureEntity pilot = new CreatureEntity(Pick(PilotNames))
-				.Apply(Pick(GameCatalog.Species))
+				.Apply(species)
 				.Apply(Pick(GameCatalog.Occupations));
 
-			PlanetEntity planet = new PlanetEntity(Pick(PlanetNames))
-				.Apply(Pick(GameCatalog.CelestialBodies));
+			// A quarter of runs are homecomings: trivially survivable, no gear needed.
+			// The rest are real puzzles somewhere else in the system.
+			CelestialBodyAspect body = Random.value < 0.25f
+				? (GameCatalog.FindBody(species.Origin) ?? Pick(GameCatalog.CelestialBodies))
+				: Pick(GameCatalog.CelestialBodies);
 
-			ShipEntity ship = new ShipEntity(Pick(ShipNames));
+			PlanetEntity planet = new PlanetEntity(body.Name).Apply(body);
+
+			foreach (EquipmentAspect equipment in RollEquipment(species))
+			{
+				pilot.Apply(equipment);
+			}
+
+			ShipEntity ship = new ShipEntity(Pick(ShipNames)).Apply(RollShipClass(body));
 
 			return new LandingPilotRequest(pilot, planet, ship, _requestTimeLimit);
+		}
+
+		private static ShipAspect RollShipClass(CelestialBodyAspect body)
+		{
+			if (Random.value < 0.35f)
+			{
+				return Pick(GameCatalog.ShipClasses);
+			}
+
+			List<ShipAspect> rated = GameCatalog.ShipClasses.Where(shipClass =>
+				Covers(shipClass.Hull.Pressure, body.Environment.Pressure) &&
+				Covers(shipClass.Hull.Gravity, body.Environment.Gravity) &&
+				Covers(shipClass.Hull.Temperature, body.Environment.AverageTemperature)).ToList();
+
+			return rated.Count > 0 ? rated[Random.Range(0, rated.Count)] : Pick(GameCatalog.ShipClasses);
+		}
+
+		private static bool Covers(FloatRange? range, float value)
+			=> range.HasValue && range.Value.Contains(value);
+
+		private static List<EquipmentAspect> RollEquipment(SpeciesAspect species)
+		{
+			List<EquipmentAspect> carried = new List<EquipmentAspect>();
+			if (Random.value < 0.35f)
+			{
+				return carried; // No equipment
+			}
+
+			List<EquipmentAspect> certified = GameCatalog.Equipment
+				.Where(e => e.CanBeEquippedBy(species)).ToList();
+
+			int pieces = Random.value < 0.25f ? 2 : 1;
+			for (int i = 0; i < pieces; i++)
+			{
+				bool useCertified = certified.Count > 0 && Random.value < 0.75f;
+				EquipmentAspect pick = useCertified
+					? certified[Random.Range(0, certified.Count)]
+					: Pick(GameCatalog.Equipment);
+
+				if (!carried.Contains(pick))
+				{
+					carried.Add(pick);
+				}
+			}
+			return carried;
 		}
 
 		private static T Pick<T>(T[] options) => options[Random.Range(0, options.Length)];

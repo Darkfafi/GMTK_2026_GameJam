@@ -1,5 +1,3 @@
-using System;
-
 namespace GMTK_2026
 {
 	public sealed class OccupationAspect : EntityAspect
@@ -9,28 +7,12 @@ namespace GMTK_2026
 		{
 		}
 
-		public static readonly OccupationAspect Warrior = Build("Warrior", "Trained combatant.", _ => { });
-
-		public static readonly OccupationAspect VacuumWorker = Build("Vacuum Worker", "Hardened for exposure.", o =>
-		{
-			o.Removes.Add(EnvironmentTag.Vacuum);
-		});
-
-		public static readonly OccupationAspect HazmatSpecialist = Build("Hazmat Specialist", "Trained in toxic environments.", o =>
-		{
-			o.Removes.Add(EnvironmentTag.Radiation);
-		});
-
-		public static readonly OccupationAspect DeepMiner = Build("Deep Miner", "Used to extreme pressure.", o =>
-		{
-			o.Removes.Add(EnvironmentTag.Pressure);
-		});
-
-		private static OccupationAspect Build(string name, string description, Action<OccupationAspect> configure)
-		{
-			OccupationAspect occupation = new OccupationAspect(name, description);
-			configure(occupation);
-			return occupation;
-		}
+		public static readonly OccupationAspect FreightPilot = new OccupationAspect("Freight Pilot", "Hauls bulk cargo between colonies.");
+		public static readonly OccupationAspect Surveyor = new OccupationAspect("Surveyor", "Maps unclaimed terrain for the registry.");
+		public static readonly OccupationAspect Diplomat = new OccupationAspect("Diplomat", "Travels on behalf of a homeworld government.");
+		public static readonly OccupationAspect Miner = new OccupationAspect("Miner", "Extracts ore and volatiles from hostile worlds.");
+		public static readonly OccupationAspect Researcher = new OccupationAspect("Researcher", "Studies atmospheric and geological phenomena.");
+		public static readonly OccupationAspect Medic = new OccupationAspect("Medic", "Runs emergency response between outposts.");
+		public static readonly OccupationAspect Trader = new OccupationAspect("Trader", "Independent merchant working the outer routes.");
 	}
 }
