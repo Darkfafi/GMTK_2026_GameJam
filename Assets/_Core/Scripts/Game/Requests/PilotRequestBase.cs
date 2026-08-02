@@ -14,6 +14,8 @@ namespace GMTK_2026
 		public IReadOnlyList<Requirement> Requirements => _requirements;
 
 		public CreatureEntity Pilot => GetDependency<CreatureEntity>(DependencyKeys.Pilot);
+		public PlanetEntity Target => GetDependency<PlanetEntity>(DependencyKeys.Target);
+		public ShipEntity Ship => GetDependency<ShipEntity>(DependencyKeys.Ship);
 
 		public float TimeLimit { get; }
 		public float TimeRemaining { get; private set; }

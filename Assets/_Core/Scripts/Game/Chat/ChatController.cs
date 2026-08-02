@@ -6,6 +6,20 @@ namespace GMTK_2026
 {
 	public class ChatController : MonoBehaviour
 	{
+		private const string BriefingText =
+			"Pilots will hail you requesting landing clearance. <b>They will not tell you everything.</b>\n\n" +
+			"<b>Interrogate them.</b> Ask what species they are, where they are from, what gear " +
+			"they carry, what they are flying and where they are going. Not every pilot knows " +
+			"their own details — some can only describe things.\n\n" +
+			"<b>Verify in the file system.</b> The terminal on the left is yours to explore right " +
+			"now. Start with <color=#00ff88>readme.md</color>, then the landing protocols. " +
+			"A landing needs four conditions met — <color=#00ff88>pressure</color>, " +
+			"<color=#00ff88>gravity</color>, <color=#00ff88>temperature</color> and " +
+			"<color=#00ff88>composition</color> — plus a hull rated for the descent.\n\n" +
+			"<b>Make the call.</b> Access or Decline  " +
+			"<color=#ff4757>before the transmission times out.</color>\n\n" +
+			"Take your time reading. And start the shift when you are ready";
+
 		public event Action<PlayerChoice> DecisionMadeEvent;
 		public event Action ShiftStartRequestedEvent;
 
@@ -37,6 +51,7 @@ namespace GMTK_2026
 			_uiWindow.StartShiftClickedEvent -= OnStartShiftClicked;
 		}
 
+		// Overlay
 		public void ShowBriefing()
 		{
 			_uiWindow.SetInteractable(false);
@@ -62,36 +77,22 @@ namespace GMTK_2026
 
 		private void OnStartShiftClicked() => ShiftStartRequestedEvent?.Invoke();
 
-		private const string BriefingText =
-			"Pilots will hail you requesting landing clearance. <b>They will not tell you everything.</b>\n\n" +
-			"<b>Interrogate them.</b> Ask what species they are, where they are from, what gear " +
-			"they carry, what they are flying and where they are going. Not every pilot knows " +
-			"their own details — some can only describe things.\n\n" +
-			"<b>Verify in the file system.</b> The terminal on the left is yours to explore right " +
-			"now. Start with <color=#00ff88>readme.md</color>, then the landing protocols. " +
-			"A landing needs four conditions met — <color=#00ff88>pressure</color>, " +
-			"<color=#00ff88>gravity</color>, <color=#00ff88>temperature</color> and " +
-			"<color=#00ff88>composition</color> — plus a hull rated for the descent.\n\n" +
-			"<b>Make the call.</b> Access or Decline  " +
-			"<color=#ff4757>before the transmission times out.</color>\n\n" +
-			"Take your time reading. And start the shift when you are ready";
-
-		public void StartConversation(LandingPilotRequest request)
+		public void StartConversation(PilotPersona pilotPersona)
 		{
 			StopAllCoroutines();
-			_request = request;
-			_persona = new PilotPersona(request);
+			_request = pilotPersona.Request;
+			_persona = pilotPersona;
 			_brain = new PilotBrain(_persona);
 			_requestCounter++;
 
 			_uiWindow.ClearMessages();
 			_uiWindow.SetRequestId($"REQ-{_requestCounter:0000}");
-			_uiWindow.SetTimer(request.TimeRemaining);
+			_uiWindow.SetTimer(_request.TimeRemaining);
 			_uiWindow.SetInteractable(true);
 			_uiWindow.AddMessage(ChatSpeaker.System, "— Incoming transmission —");
 
 			ScheduleUnprompted();
-			StartCoroutine(SayAfter(UnityEngine.Random.Range(0.6f, 1.2f), _persona.Hail));
+			StartCoroutine(SayAfter(UnityEngine.Random.Range(0.6f, 1.2f), _brain.GetIntroLine()));
 			_uiWindow.FocusInput();
 		}
 
@@ -115,23 +116,9 @@ namespace GMTK_2026
 			_uiWindow.AddMessage(ChatSpeaker.System, message);
 		}
 
-		public void ShowDecisionReaction(PlayerChoice choice, bool timedOut)
+		public void ShowDecisionReaction(PlayerChoice choice)
 		{
-			string line;
-			if (timedOut)
-			{
-				line = Pick("...?", "Did you just...?", "Hey! I'm still here!", "No! Wait—");
-			}
-			else if (choice == PlayerChoice.Approved)
-			{
-				line = Pick("Thank you, operator.", "Copy that. Proceeding.", "Acknowledged. Good to go.", "Finally. Thank you.");
-			}
-			else
-			{
-				line = Pick("...understood.", "Are you sure about that?", "You can't be serious.", "Fine. I'll find another way.");
-			}
-
-			StartCoroutine(SayAfter(0.6f, line));
+			StartCoroutine(SayAfter(0.6f, _brain.GetDecisionLine(choice)));
 		}
 
 		private void Update()
@@ -148,7 +135,7 @@ namespace GMTK_2026
 			if (_unpromptedIn <= 0f && _replyRoutine == null)
 			{
 				ScheduleUnprompted();
-				string line = _persona.UnpromptedLines[UnityEngine.Random.Range(0, _persona.UnpromptedLines.Count)];
+				string line = _brain.GetUnpromptedLine();
 				_replyRoutine = StartCoroutine(ReplyRoutine(line, UnityEngine.Random.Range(0.8f, 1.5f)));
 			}
 		}
@@ -187,7 +174,7 @@ namespace GMTK_2026
 					string combined = string.Empty;
 					for (int i = 0; i < result.Topics.Count; i++)
 					{
-						string part = _brain.GenerateResponse(result.Topics[i]);
+						string part = _brain.GetAnswerLine(result.Topics[i]);
 						if (!string.IsNullOrEmpty(part) && part != "...")
 						{
 							combined = combined.Length > 0 ? $"{combined} {part}" : part;
@@ -250,8 +237,5 @@ namespace GMTK_2026
 
 		private static string EscapeRichText(string text)
 			=> text.Replace("<", "<noparse><</noparse>");
-
-		private static string Pick(params string[] options)
-			=> options[UnityEngine.Random.Range(0, options.Length)];
 	}
 }

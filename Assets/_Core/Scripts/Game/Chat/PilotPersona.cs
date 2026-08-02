@@ -3,26 +3,6 @@ using UnityEngine;
 
 namespace GMTK_2026
 {
-	public enum ChatTopic
-	{
-		Name,
-		Species,
-		Origin,
-		Equipment,
-		Occupation,
-		Destination,
-		Body,
-		ShipName,
-		ShipClass,
-		Needs,
-		Health,
-		Purpose,
-		Greeting,
-		Rude,
-		Hurry,
-		Goodbye,
-	}
-
 	public class PilotPersona
 	{
 		public static readonly HashSet<ChatTopic> CriticalTopics = new HashSet<ChatTopic>
@@ -34,26 +14,27 @@ namespace GMTK_2026
 			ChatTopic.ShipClass,
 		};
 
-		public LandingPilotRequest Request { get; }
-
 		// How directly the pilot answers (low = vague phrasing)
 		public float Clarity { get; private set; }
 
 		// Willingness to answer non-critical questions (low = evasive)
 		public float Cooperation { get; private set; }
 
-		/// Delay
+		/// Nervousness (high = on edge)
 		public float Nervousness { get; private set; }
 
-		public string Hail { get; private set; }
-		public IReadOnlyList<string> UnpromptedLines => _unprompted;
+		// What they want to talk to you about
+		public PilotRequestBase Request { get; private set; }
 
 		private readonly Dictionary<ChatTopic, float> _knowledge = new Dictionary<ChatTopic, float>();
-		private readonly List<string> _unprompted = new List<string>();
 
-		public PilotPersona(LandingPilotRequest request)
+		public PilotPersona(PilotRequestBase request, float? clarity, float? cooperation, float? nervousness, Dictionary<ChatTopic, float> customKnowledge)
 		{
 			Request = request;
+			Clarity = clarity.HasValue ? clarity.Value : Random.Range(0.35f, 0.95f);
+			Cooperation = cooperation.HasValue ? cooperation.Value : Random.Range(0.3f, 0.95f);
+			Nervousness = nervousness.HasValue ? nervousness.Value : Random.Range(0f, 0.8f);
+			_knowledge = new Dictionary<ChatTopic, float>(customKnowledge);
 			Roll();
 		}
 
@@ -62,66 +43,33 @@ namespace GMTK_2026
 
 		private void Roll()
 		{
-			Clarity = Request.Clarity.HasValue ? Request.Clarity.Value : Random.Range(0.35f, 0.95f);
-			Cooperation = Request.Cooperation.HasValue ? Request.Cooperation.Value : Random.Range(0.3f, 0.95f);
-			Nervousness = Request.Nervousness.HasValue ? Request.Nervousness.Value : Random.Range(0f, 0.8f);
+			void SetKnowledge(ChatTopic topic, float value)
+			{
+				if (!_knowledge.ContainsKey(topic))
+				{
+					_knowledge[topic] = value;
+				}
+			}
 
 			// Always Known
-			_knowledge[ChatTopic.Name] = 1f;
-			_knowledge[ChatTopic.Destination] = 1f;
-			_knowledge[ChatTopic.Origin] = 1f;
-			_knowledge[ChatTopic.ShipName] = RollKnowledge(0.85f, 0.05f);
+			SetKnowledge(ChatTopic.Name, 1f);
+			SetKnowledge(ChatTopic.Destination, 1f);
+			SetKnowledge(ChatTopic.Origin, 1f);
+			SetKnowledge(ChatTopic.ShipName, RollKnowledge(0.85f, 0.05f));
 
 			// Pilots can see the gear they packed
-			_knowledge[ChatTopic.Equipment] = RollKnowledge(0.85f, 0.15f);
+			SetKnowledge(ChatTopic.Equipment, RollKnowledge(0.85f, 0.15f));
 
 			// Not everyone knows what class of hull they were handed.
-			_knowledge[ChatTopic.ShipClass] = RollKnowledge(0.7f, 0.15f);
+			SetKnowledge(ChatTopic.ShipClass, RollKnowledge(0.7f, 0.15f));
 
 			// The research-relevant topics: often known, sometimes vague, sometimes
 			// only describable - forcing the operator to match the description
 			// against the registry files.
-			_knowledge[ChatTopic.Species] = RollKnowledge(0.6f, 0.15f);
-			_knowledge[ChatTopic.Body] = RollKnowledge(0.6f, 0.15f);
-			_knowledge[ChatTopic.Occupation] = RollKnowledge(0.7f, 0.1f);
-			_knowledge[ChatTopic.Needs] = RollKnowledge(0.5f, 0.2f);
-
-			// Override with custom values if specified
-			if (Request.CustomKnowledge != null)
-			{
-				foreach (var kvp in Request.CustomKnowledge)
-				{
-					_knowledge[kvp.Key] = kvp.Value;
-				}
-			}
-
-			string pilot = Request.Pilot?.Name;
-			string planet = Request.Target?.Name;
-			string ship = Request.Ship?.Name;
-
-			Hail = Pick(
-				$"Station Alpha, this is {pilot}. Requesting landing clearance on {planet}.",
-				$"...hello? This is {pilot}. I need to land. {planet}, if possible.",
-				$"Station Alpha, {pilot} here, flying the {ship}. Requesting permission to land on {planet}.",
-				$"{pilot} to Station Alpha. Landing request for {planet}. Standing by.");
-
-			_unprompted.Add("Operator? Are you still there?");
-			_unprompted.Add("I really need to get down there soon.");
-			if (Nervousness > 0.5f)
-			{
-				_unprompted.Add("...");
-				_unprompted.Add("Please, I just need to land.");
-			}
-			if (Cooperation < 0.5f)
-			{
-				_unprompted.Add("I don't have all day, operator.");
-				_unprompted.Add("Is this going to take much longer?");
-			}
-			else
-			{
-				_unprompted.Add("Standing by for clearance.");
-				_unprompted.Add("Let me know if you need anything else from me.");
-			}
+			SetKnowledge(ChatTopic.Species, RollKnowledge(0.6f, 0.15f));
+			SetKnowledge(ChatTopic.Body, RollKnowledge(0.6f, 0.15f));
+			SetKnowledge(ChatTopic.Occupation, RollKnowledge(0.7f, 0.1f));
+			SetKnowledge(ChatTopic.Needs, RollKnowledge(0.5f, 0.2f));
 		}
 
 		private static float RollKnowledge(float knowChance, float vagueChance)
@@ -133,8 +81,5 @@ namespace GMTK_2026
 			}
 			return roll < knowChance + vagueChance ? 0.5f : 0f;
 		}
-
-		private static string Pick(params string[] options)
-			=> options[Random.Range(0, options.Length)];
 	}
 }

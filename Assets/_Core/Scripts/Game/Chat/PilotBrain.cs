@@ -4,28 +4,22 @@ using UnityEngine;
 
 namespace GMTK_2026
 {
-	public class BrainResult
-	{
-		public enum ResultKind
-		{
-			Answer,
-			Clarify,
-			Fallback,
-		}
-
-		public ResultKind Kind;
-		public readonly List<ChatTopic> Topics = new List<ChatTopic>();
-		public bool AsksAboutUnknown;
-	}
-
 	public class PilotBrain
 	{
-		private enum Subject { Pilot, Ship, Planet }
-		private enum Attr { Kind, Name }
-
+		// Knowledge / Personality
 		private readonly PilotPersona _persona;
+
+		// Clarification Required, If any of the subjects is given, we know the Topic
+		// For Example: You asked about my Kind, but I don't know if its my kind of ship, or my kind of species..
+		// Subject map: Pilot -> Species or Ship -> Ship Type
 		private Dictionary<Subject, ChatTopic> _pendingMap;
+
+		// What is the Ship Type? -> And the Name? 
+		// Remembers you were talking about the Ship
+		// 1 Subject at a time
 		private Subject? _lastSubject;
+
+		// Consequtive Fails -> Used to give tips after x tries
 		private int _fails;
 
 		public PilotBrain(PilotPersona persona)
@@ -33,182 +27,147 @@ namespace GMTK_2026
 			_persona = persona;
 		}
 
-		private static readonly Dictionary<ChatTopic, string[]> Phrases = new Dictionary<ChatTopic, string[]>
+		public string GetIntroLine()
 		{
-			{ ChatTopic.Name, new[] { "your name", "who are you", "whats your name", "what's your name", "what is your name", "identify yourself", "call you" } },
-			{ ChatTopic.Species, new[] { "species", "what are you", "your kind", "your race", "are you human", "are you alien", "life form", "lifeform", "what creature", "biological" } },
-			{ ChatTopic.Origin, new[] { "where are you from", "where do you come from", "your home", "homeworld", "home world", "your origin", "originate", "native to", "born" } },
-			{ ChatTopic.Equipment, new[] { "equipment", "your gear", "any gear", "a suit", "your suit", "wearing", "carrying", "protection", "protective", "rig", "do you have gear", "what do you have with you", "life support" } },
-			{ ChatTopic.Occupation, new[] { "what do you do", "your job", "occupation", "profession", "work as", "your role", "your position" } },
-			{ ChatTopic.Destination, new[] { "where are you going", "your destination", "what planet", "which planet", "where to", "landing on", "going to", "heading", "headed", "destination", "land where", "where do you need" } },
-			{ ChatTopic.Body, new[] { "kind of planet", "type of planet", "what body", "body type", "kind of world", "type of world", "describe the planet", "planet like", "what is the planet", "whats the planet", "what's the planet", "celestial" } },
-			{ ChatTopic.ShipName, new[] { "ship name", "vessel name", "ship called", "name of your ship", "what ship", "what vessel", "callsign", "call sign" } },
-			{ ChatTopic.ShipClass, new[] { "ship class", "class of ship", "what kind of ship", "what type of ship", "kind of vessel", "type of vessel", "vessel class", "hull", "what are you flying", "rated for", "how tough" } },
-			{ ChatTopic.Needs, new[] { "what do you need", "need to survive", "need to live", "breathe", "breath", "oxygen", "atmosphere do you", "survive on", "requirements", "what keeps you alive", "environment do you need" } },
-			{ ChatTopic.Health, new[] { "how are you", "are you okay", "are you ok", "you alright", "are you alright", "your condition", "are you hurt", "injured", "how do you feel", "how are things", "hows it going", "how's it going", "you good", "all good", "doing okay", "doing well", "everything alright" } },
-			{ ChatTopic.Purpose, new[] { "why do you need", "purpose", "reason", "what for", "why are you going", "what brings you", "business", "why this planet" } },
-			{ ChatTopic.Greeting, new[] { "hello", "hi", "hey", "yo", "greetings", "good morning", "good evening", "good day", "howdy", "salutations" } },
-			{ ChatTopic.Rude, new[] { "shut up", "stupid", "idiot", "moron", "dumb", "useless" } },
-			{ ChatTopic.Hurry, new[] { "hurry", "quick", "be fast", "speed up", "faster", "time is running" } },
-			{ ChatTopic.Goodbye, new[] { "bye", "goodbye", "done", "thats all", "that's all", "nothing else", "were done", "we're done" } },
-		};
+			var pilot = _persona.Request.Pilot;
+			var planet = _persona.Request.Target;
+			var ship = _persona.Request.Ship;
 
-		private static readonly Dictionary<Subject, string[]> SubjectWords = new Dictionary<Subject, string[]>
-		{
-			{ Subject.Ship, new[] { "ship", "ships", "vessel", "vessels", "craft", "freighter", "shuttle", "boat" } },
-			{ Subject.Planet, new[] { "planet", "world", "destination", "moon", "body", "there" } },
-			{ Subject.Pilot, new[] { "you", "your", "yourself", "u", "pilot", "captain" } },
-		};
+			return Pick(
+				$"Station Alpha, this is {pilot}. Requesting landing clearance on {planet}.",
+				$"...hello? This is {pilot}. I need to land. {planet}, if possible.",
+				$"Station Alpha, {pilot} here, flying the {ship}. Requesting permission to land on {planet}.",
+				$"{pilot} to Station Alpha. Landing request for {planet}. Standing by.");
+		}
 
-		private static readonly Dictionary<Attr, Dictionary<Subject, ChatTopic>> AttrMap = new Dictionary<Attr, Dictionary<Subject, ChatTopic>>
+		public string GetUnpromptedLine()
 		{
-			{ Attr.Kind, new Dictionary<Subject, ChatTopic> { { Subject.Pilot, ChatTopic.Species }, { Subject.Planet, ChatTopic.Body }, { Subject.Ship, ChatTopic.ShipClass } } },
-			{ Attr.Name, new Dictionary<Subject, ChatTopic> { { Subject.Pilot, ChatTopic.Name }, { Subject.Planet, ChatTopic.Destination }, { Subject.Ship, ChatTopic.ShipName } } },
-		};
+			List<string> _unprompted = new List<string>
+			{
+				"Operator? Are you still there?",
+				"I really need to get down there soon."
+			};
 
-		private static readonly Dictionary<Attr, string[]> AttrNeutralWords = new Dictionary<Attr, string[]>
-		{
-			{ Attr.Kind, new[] { "kind", "type", "class", "sort" } },
-			{ Attr.Name, new[] { "name", "called", "call" } },
-		};
+			if (_persona.Nervousness > 0.5f)
+			{
+				_unprompted.Add("...");
+				_unprompted.Add("Please, I just need to land.");
+			}
+			if (_persona.Cooperation < 0.5f)
+			{
+				_unprompted.Add("I don't have all day, operator.");
+				_unprompted.Add("Is this going to take much longer?");
+			}
+			else
+			{
+				_unprompted.Add("Standing by for clearance.");
+				_unprompted.Add("Let me know if you need anything else from me.");
+			}
 
-		private static readonly Dictionary<ChatTopic, Subject> TopicSubject = new Dictionary<ChatTopic, Subject>
-		{
-			{ ChatTopic.Name, Subject.Pilot }, { ChatTopic.Species, Subject.Pilot }, { ChatTopic.Occupation, Subject.Pilot },
-			{ ChatTopic.Needs, Subject.Pilot }, { ChatTopic.Health, Subject.Pilot },
-			{ ChatTopic.Origin, Subject.Pilot }, { ChatTopic.Equipment, Subject.Pilot },
-			{ ChatTopic.ShipName, Subject.Ship }, { ChatTopic.ShipClass, Subject.Ship },
-			{ ChatTopic.Destination, Subject.Planet }, { ChatTopic.Body, Subject.Planet },
-		};
+			return _unprompted[Random.Range(0, _unprompted.Count)];
+		}
 
 		public BrainResult Interpret(string message)
 		{
-			string low = message.ToLowerInvariant().Trim();
+			// Clean-up
+			string normalizedMessage = message.ToLowerInvariant().Trim();
 			Dictionary<Subject, ChatTopic> pending = _pendingMap;
 			_pendingMap = null;
 
 			BrainResult result = new BrainResult();
-			List<(ChatTopic topic, int score)> sorted = ScoreTopics(low);
 
+			// Score Topics
+			List<(ChatTopic topic, int score)> sorted = PilotBrainTopic.ScoreTopics(normalizedMessage);
+
+			// Pending Topic (What is the Name?) -> (Get Subject out of follow-up)
 			if (pending != null && sorted.Count == 0)
 			{
-				Subject? subject = DetectSubject(low);
+				Subject? subject = PilotBrainSubject.DetectSubject(normalizedMessage);
 				if (subject.HasValue && pending.TryGetValue(subject.Value, out ChatTopic pendingTopic))
 				{
-					return Answer(result, pendingTopic);
+					return AppendAnswer(result, pendingTopic);
 				}
 			}
 
+			// If we detected Topics
 			if (sorted.Count > 0)
 			{
-				if (sorted.Count > 1 && DetectSubject(low) == null)
+				// There was no Subject found while multiple Topics are found, we might need clarification
+				if (sorted.Count > 1 && PilotBrainSubject.DetectSubject(normalizedMessage) == null)
 				{
-					Attr? attr = AmbiguousPair(sorted[0].topic, sorted[1].topic);
-					if (attr.HasValue && sorted[1].score >= sorted[0].score * 0.6f)
+					// If Top 2 Topics are Ambiguous, then ask for Clarification, but only if
+					// The 2nd Topic is at least 60% certainty score compared to the first
+					// Hello Species, what is your name (what is your name > 60% than Species)
+					// So then we skip clarification. We understand the main topic is the top one
+					ChatAttribute? chatAttribute = PilotBrainAttribute.GetAmbiguousChatTopicAttribute(sorted[0].topic, sorted[1].topic);
+					if (chatAttribute.HasValue && sorted[1].score >= sorted[0].score * 0.6f)
 					{
-						_pendingMap = AttrMap[attr.Value];
+						_pendingMap = PilotBrainAttribute.ChatAttributeToSubjectTopicPairMap[chatAttribute.Value];
 						result.Kind = BrainResult.ResultKind.Clarify;
 						_fails = 0;
 						return result;
 					}
 				}
 
-				Answer(result, sorted[0].topic);
-				if (sorted.Count > 1 && sorted[1].score >= sorted[0].score * 0.4f && AmbiguousPair(sorted[0].topic, sorted[1].topic) == null)
+				// Answer Original Question
+				AppendAnswer(result, sorted[0].topic);
+
+				// Answer Second Non-ambiguous topic within the same sentence
+				// Only if the second topic's certainty is scored at least 40% to the main topic.
+				if (sorted.Count > 1 && sorted[1].score >= sorted[0].score * 0.4f && PilotBrainAttribute.GetAmbiguousChatTopicAttribute(sorted[0].topic, sorted[1].topic) == null)
 				{
-					Answer(result, sorted[1].topic);
+					AppendAnswer(result, sorted[1].topic);
 				}
 				return result;
 			}
 
-			foreach (KeyValuePair<Attr, string[]> pair in AttrNeutralWords)
+			// If no clear Topic was given in this message, we will use chat attributes
+			foreach (KeyValuePair<ChatAttribute, string[]> attrToWordsPair in PilotBrainAttribute.ChatAttributeNeutralWordsMap)
 			{
-				if (!pair.Value.Any(low.Contains))
+				// Was this Attribute used within the message?
+				if (!attrToWordsPair.Value.Any(normalizedMessage.Contains))
 				{
 					continue;
 				}
 
-				Subject? subject = DetectSubject(low) ?? _lastSubject;
-				if (subject.HasValue && AttrMap[pair.Key].TryGetValue(subject.Value, out ChatTopic topic))
+				// We try to determine the Subject in the message, or the subject last discussed
+				// Last Prompt: What Ship do you have?
+				// This Prompt: And Type?
+				// (Knows you are asking about the Type of the Ship you just asked the name for due to _lastSubject) 
+				// This also covers when the message is just 'Subject Attribute'
+				Subject? subject = PilotBrainSubject.DetectSubject(normalizedMessage) ?? _lastSubject;
+				if (subject.HasValue && PilotBrainAttribute.ChatAttributeToSubjectTopicPairMap[attrToWordsPair.Key].TryGetValue(subject.Value, out ChatTopic topic))
 				{
-					return Answer(result, topic);
+					return AppendAnswer(result, topic);
 				}
 
-				_pendingMap = AttrMap[pair.Key];
+				// If no answer given, get Subject Topic Map for clarification s
+				_pendingMap = PilotBrainAttribute.ChatAttributeToSubjectTopicPairMap[attrToWordsPair.Key];
 				result.Kind = BrainResult.ResultKind.Clarify;
 				_fails = 0;
 				return result;
 			}
 
+			// Lol I have no idea what you are talking about dude.. x_x
 			_fails++;
 			result.Kind = BrainResult.ResultKind.Fallback;
 			return result;
 		}
 
-		private BrainResult Answer(BrainResult result, ChatTopic topic)
+		private BrainResult AppendAnswer(BrainResult result, ChatTopic topic)
 		{
 			result.Kind = BrainResult.ResultKind.Answer;
 			result.Topics.Add(topic);
-			if (TopicSubject.TryGetValue(topic, out Subject subject))
+			if (PilotBrainTopic.TopicSubjectMap.TryGetValue(topic, out Subject subject))
 			{
 				_lastSubject = subject;
 			}
-			if (_persona.GetKnowledge(topic) <= 0f && !IsDirect(topic))
+			if (_persona.GetKnowledge(topic) <= 0f && !PilotBrainTopic.IsDirect(topic))
 			{
 				result.AsksAboutUnknown = true;
 			}
 			_fails = 0;
 			return result;
-		}
-
-		private static List<(ChatTopic, int)> ScoreTopics(string low)
-		{
-			var scores = new List<(ChatTopic, int)>();
-			string[] words = Tokenize(low);
-
-			foreach (KeyValuePair<ChatTopic, string[]> pair in Phrases)
-			{
-				int score = pair.Value.Where(pattern => MatchesPattern(low, words, pattern)).Sum(p => p.Length);
-				if (score > 0)
-				{
-					scores.Add((pair.Key, score));
-				}
-			}
-			return scores.OrderByDescending(s => s.Item2).ToList();
-		}
-
-		private static bool MatchesPattern(string low, string[] words, string pattern)
-		{
-			if (pattern.Length <= 4 && !pattern.Contains(' '))
-			{
-				return words.Contains(pattern);
-			}
-			return low.Contains(pattern);
-		}
-
-		private static string[] Tokenize(string low)
-			=> new string(low.Select(c => char.IsLetterOrDigit(c) || c == '\'' ? c : ' ').ToArray())
-				.Split(' ').Where(w => w.Length > 0).ToArray();
-
-		private static Subject? DetectSubject(string low)
-		{
-			string[] words = new string(low.Select(c => char.IsLetterOrDigit(c) ? c : ' ').ToArray())
-				.Split(' ').Where(w => w.Length > 0).ToArray();
-
-			// Ship/planet win over pilot: "your ship" contains both.
-			if (words.Any(w => SubjectWords[Subject.Ship].Contains(w))) return Subject.Ship;
-			if (words.Any(w => SubjectWords[Subject.Planet].Contains(w))) return Subject.Planet;
-			if (words.Any(w => SubjectWords[Subject.Pilot].Contains(w))) return Subject.Pilot;
-			return null;
-		}
-
-		private static Attr? AmbiguousPair(ChatTopic a, ChatTopic b)
-		{
-			bool Has(ChatTopic x, ChatTopic y) => (a == x && b == y) || (a == y && b == x);
-			if (Has(ChatTopic.Species, ChatTopic.Body)) return Attr.Kind;
-			if (Has(ChatTopic.Species, ChatTopic.ShipClass) || Has(ChatTopic.Body, ChatTopic.ShipClass)) return Attr.Kind;
-			if (Has(ChatTopic.Name, ChatTopic.ShipName) || Has(ChatTopic.Name, ChatTopic.Destination)) return Attr.Name;
-			return null;
 		}
 
 		public string GetClarifyLine()
@@ -228,9 +187,9 @@ namespace GMTK_2026
 			return Pick("I'm not sure what you're asking.", "Could you rephrase that?", "I don't follow.", "Hmm? What do you mean?", "Can you be more specific?");
 		}
 
-		public string GenerateResponse(ChatTopic topic)
+		public string GetAnswerLine(ChatTopic topic)
 		{
-			LandingPilotRequest request = _persona.Request;
+			PilotRequestBase request = _persona.Request;
 
 			switch (topic)
 			{
@@ -267,29 +226,29 @@ namespace GMTK_2026
 						: Pick("That's my concern.", "Does it matter?", "I have my reasons.");
 
 				case ChatTopic.Name:
-					return ValueAnswer(topic, request.Pilot?.Name,
-						dont: "I... don't remember my name right now.");
+					return GetAnswerLine(topic, request.Pilot?.Name,
+						fallback: "I... don't remember my name right now.");
 				case ChatTopic.ShipName:
-					return ValueAnswer(topic, request.Ship?.Name,
-						dont: "I never caught the vessel's name. It's just... my ship.");
+					return GetAnswerLine(topic, request.Ship?.Name,
+						fallback: "I never caught the vessel's name. It's just... my ship.");
 
 				case ChatTopic.ShipClass:
 					ShipAspect shipClass = request.Ship?.Class;
 					string shipClassName = shipClass?.Name;
-					return ValueAnswer(topic, shipClassName,
-						dont: DescribeClue(shipClass?.Description,
+					return GetAnswerLine(topic, shipClassName,
+						fallback: GetDescribeClueLine(shipClass?.Description,
 							"No idea what class it is. It was the only one on the pad."));
 				case ChatTopic.Destination:
-					return ValueAnswer(topic, request.Target?.Name,
-						dont: "The nav computer knows. I don't, honestly.");
+					return GetAnswerLine(topic, request.Target?.Name,
+						fallback: "The nav computer knows. I don't, honestly.");
 
 				case ChatTopic.Species:
 					SpeciesAspect species = request.Pilot?.Species;
 					string speciesName = species?.Name;
 					// A pilot who can't name their species still knows where they're from —
 					// the planetary index lists each world's natives.
-					return ValueAnswer(topic, speciesName,
-						dont: species != null
+					return GetAnswerLine(topic, speciesName,
+						fallback: species != null
 							? Pick(
 								$"I don't know what your records call us. I'm from {species.Origin}, if that helps.",
 								$"Couldn't tell you the official term. My people are native to {species.Origin}.",
@@ -298,32 +257,47 @@ namespace GMTK_2026
 
 				case ChatTopic.Origin:
 					string originName = request.Pilot?.Species?.Origin;
-					return ValueAnswer(topic, originName,
-						dont: "I've been out here so long I couldn't tell you where I started.");
+					return GetAnswerLine(topic, originName,
+						fallback: "I've been out here so long I couldn't tell you where I started.");
 
 				case ChatTopic.Equipment:
-					return EquipmentAnswer(request);
+					return GetEquipmentAnswerLine();
 
 				case ChatTopic.Body:
 					CelestialBodyAspect body = request.Target?.Body;
-					return ValueAnswer(topic, body?.Name,
-						dont: DescribeClue(body?.Description, "I can't name the type, but I can see it from here."));
+					return GetAnswerLine(topic, body?.Name,
+						fallback: GetDescribeClueLine(body?.Description, "I can't name the type, but I can see it from here."));
 				case ChatTopic.Occupation:
 					OccupationAspect occupation = FindAspect<OccupationAspect>(request.Pilot);
-					return ValueAnswer(topic, occupation?.Name,
-						dont: DescribeClue(occupation?.Description, "I just... fly. That's all I know."));
+					return GetAnswerLine(topic, occupation?.Name,
+						fallback: GetDescribeClueLine(occupation?.Description, "I just... fly. That's all I know."));
 
 				case ChatTopic.Needs:
-					return NeedsAnswer(request);
+					return GetNeedsAnswerLine();
 
 				default:
 					return "...";
 			}
 		}
 
-		private string EquipmentAnswer(LandingPilotRequest request)
+		public string GetDecisionLine(PlayerChoice choice)
 		{
-			List<EquipmentAspect> carried = request.Pilot?.Equipment;
+			switch (choice)
+			{
+				case PlayerChoice.None:
+					return Pick("...?", "Did you just...?", "Hey! I'm still here!", "No! Wait—");
+				case PlayerChoice.Approved:
+					return Pick("Thank you, operator.", "Copy that. Proceeding.", "Acknowledged. Good to go.", "Finally. Thank you.");
+				case PlayerChoice.Denied:
+					return Pick("...understood.", "Are you sure about that?", "You can't be serious.", "Fine. I'll find another way.");
+			}
+
+			return string.Empty;
+		}
+
+		private string GetEquipmentAnswerLine()
+		{
+			List<EquipmentAspect> carried = _persona.Request.Pilot?.Equipment;
 			if (carried == null || carried.Count == 0)
 			{
 				return Pick(
@@ -350,9 +324,9 @@ namespace GMTK_2026
 				$"Something like this: {described}. Never read the label.");
 		}
 
-		private string NeedsAnswer(LandingPilotRequest request)
+		private string GetNeedsAnswerLine()
 		{
-			CreatureEntity pilot = request.Pilot;
+			CreatureEntity pilot = _persona.Request.Pilot;
 			if (pilot == null)
 			{
 				return "...";
@@ -384,7 +358,7 @@ namespace GMTK_2026
 				"Couldn't tell you. Whatever my kind needs, I need.");
 		}
 
-		private string ValueAnswer(ChatTopic topic, string value, string dont)
+		private string GetAnswerLine(ChatTopic topic, string value, string fallback)
 		{
 			float knowledge = _persona.GetKnowledge(topic);
 			bool critical = PilotPersona.CriticalTopics.Contains(topic);
@@ -407,10 +381,10 @@ namespace GMTK_2026
 			{
 				return Pick("Why do you ask?", "Does it matter?", "I'd rather not discuss that.", "Next question.");
 			}
-			return dont;
+			return fallback;
 		}
 
-		private static string DescribeClue(string description, string fallback)
+		private static string GetDescribeClueLine(string description, string fallback)
 		{
 			if (string.IsNullOrEmpty(description))
 			{
@@ -422,9 +396,7 @@ namespace GMTK_2026
 				$"No idea what your records call it. {description}");
 		}
 
-		private static bool IsDirect(ChatTopic topic)
-			=> topic == ChatTopic.Greeting || topic == ChatTopic.Rude || topic == ChatTopic.Hurry
-			|| topic == ChatTopic.Goodbye || topic == ChatTopic.Health || topic == ChatTopic.Purpose;
+		// Helper Methods
 
 		private static T FindAspect<T>(GameEntityBase entity) where T : EntityAspect
 		{
@@ -444,5 +416,25 @@ namespace GMTK_2026
 
 		private static string Pick(params string[] options)
 			=> options[Random.Range(0, options.Length)];
+	}
+
+
+	public class BrainResult
+	{
+		/// <summary>
+		/// Answer: Topic + Persona == Answer
+		/// Clarify: Can be about different Topics.. What do you want to know? 
+		/// Fallback: No clue or Tip to User
+		/// </summary>
+		public enum ResultKind
+		{
+			Answer,
+			Clarify,
+			Fallback,
+		}
+
+		public ResultKind Kind;
+		public readonly List<ChatTopic> Topics = new List<ChatTopic>();
+		public bool AsksAboutUnknown;
 	}
 }

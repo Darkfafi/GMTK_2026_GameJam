@@ -2,7 +2,8 @@ namespace GMTK_2026
 {
 	public enum PlayerChoice
 	{
-		Approved,
-		Denied,
+		None = 0,
+		Approved = 1,
+		Denied = 2,
 	}
 }

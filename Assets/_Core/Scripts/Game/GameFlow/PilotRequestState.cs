@@ -16,7 +16,7 @@ namespace GMTK_2026
 		private static readonly string[] PilotNames = { "Bob", "Zara", "Krix", "Reyes", "Nexus-7", "Vex", "Grok", "Sarah", "Unit-12", "Zyx", "Marla", "Oto", "Ferren", "Sil" };
 		private static readonly string[] ShipNames = { "Star Hopper", "Ice Breaker", "Dark Freighter", "ISV Vanguard", "Haul Master", "Deep Probe", "Pathfinder II" };
 
-		private LandingPilotRequest _request;
+		private PilotPersona _persona;
 
 		protected override void OnInit()
 		{
@@ -33,13 +33,14 @@ namespace GMTK_2026
 			Dependency.ChatController.DecisionMadeEvent += OnDecisionMade;
 			Dependency.RequestsController.RequestExpiredEvent += OnRequestExpired;
 
-			_request = CreateRandomRequest();
+			_persona = CreatePilot();
 
 			Dependency.RequestsController.SetData(new RequestsController.CoreData()
 			{
-				Request = _request
+				Request = _persona.Request
 			});
-			Dependency.ChatController.StartConversation(_request);
+
+			Dependency.ChatController.StartConversation(_persona);
 		}
 
 		protected override void OnExit(bool isSwitch)
@@ -49,30 +50,33 @@ namespace GMTK_2026
 			Dependency.RequestsController.RequestExpiredEvent -= OnRequestExpired;
 			Dependency.ChatController.EndConversation();
 			Dependency.RequestsController.ClearData();
-			_request = null;
+			_persona = null;
 		}
 
-		private LandingPilotRequest CreateRandomRequest()
+		private PilotPersona CreatePilot()
 		{
-			int processed = Dependency.StatsController.RequestsProcessed; // 0 to 7
-			bool isEasy = processed < 3;       // 1st, 2nd, 3rd pilots
-			bool isMedium = processed >= 3 && processed < 6; // 4th, 5th, 6th pilots
-			bool isHard = processed >= 6;      // 7th, 8th pilots (lies possible)
+			int processed = Dependency.StatsController.RequestsProcessed;
 
+			// -- Pilot --
+			// What species is the Pilot
 			SpeciesAspect species = Pick(GameCatalog.Species);
 
+			// Create the Pilot Creature
 			CreatureEntity pilot = new CreatureEntity(Pick(PilotNames))
 				.Apply(species)
 				.Apply(Pick(GameCatalog.Occupations));
 
-			// A quarter of runs are homecomings: trivially survivable, no gear needed.
-			// The rest are real puzzles somewhere else in the system.
-			CelestialBodyAspect body = Random.value < 0.25f
+
+			// -- Target --
+			// First Request & 25% returning to their home planet. (No Gear Needed)
+			// Rest require investigation by the user 
+			CelestialBodyAspect body = processed == 0 || Random.value < 0.25f
 				? (GameCatalog.FindBody(species.Origin) ?? Pick(GameCatalog.CelestialBodies))
 				: Pick(GameCatalog.CelestialBodies);
 
 			PlanetEntity planet = new PlanetEntity(body.Name).Apply(body);
 
+			// -- Gear --
 			foreach (EquipmentAspect equipment in RollEquipment(species))
 			{
 				pilot.Apply(equipment);
@@ -80,61 +84,69 @@ namespace GMTK_2026
 
 			ShipEntity ship = new ShipEntity(Pick(ShipNames)).Apply(RollShipClass(body));
 
+			// -- Brain & Intention --
 			LandingPilotRequest req = new LandingPilotRequest(pilot, planet, ship, _requestTimeLimit);
+			float? clarity;
+			float? cooperation;
+			float? nervousness;
+			Dictionary<ChatTopic, float> customKnowledge = new Dictionary<ChatTopic, float>();
 
-			// Scale difficulty
-			if (isEasy)
+			// 1st, 2nd, 3rd pilots
+			if (processed < 3)
 			{
-				req.Clarity = Random.Range(0.85f, 1.0f);
-				req.Cooperation = Random.Range(0.85f, 1.0f);
-				req.Nervousness = Random.Range(0.0f, 0.2f);
+				clarity = Random.Range(0.85f, 1.0f);
+				cooperation = Random.Range(0.85f, 1.0f);
+				nervousness = Random.Range(0.0f, 0.2f);
 
 				// They know everything perfectly
-				req.CustomKnowledge[ChatTopic.Species] = 1f;
-				req.CustomKnowledge[ChatTopic.ShipClass] = 1f;
-				req.CustomKnowledge[ChatTopic.Equipment] = 1f;
-				req.CustomKnowledge[ChatTopic.Needs] = 1f;
-				req.CustomKnowledge[ChatTopic.Body] = 1f;
-				req.CustomKnowledge[ChatTopic.Occupation] = 1f;
+				customKnowledge[ChatTopic.Species] = 1f;
+				customKnowledge[ChatTopic.ShipClass] = 1f;
+				customKnowledge[ChatTopic.Equipment] = 1f;
+				customKnowledge[ChatTopic.Needs] = 1f;
+				customKnowledge[ChatTopic.Body] = 1f;
+				customKnowledge[ChatTopic.Occupation] = 1f;
 			}
-			else if (isMedium)
+			// 4th, 5th, 6th pilots
+			else if (processed >= 3 && processed < 6)
 			{
-				req.Clarity = Random.Range(0.35f, 0.6f);
-				req.Cooperation = Random.Range(0.35f, 0.6f);
-				req.Nervousness = Random.Range(0.3f, 0.7f);
+				clarity = Random.Range(0.35f, 0.6f);
+				cooperation = Random.Range(0.35f, 0.6f);
+				nervousness = Random.Range(0.3f, 0.7f);
 
 				// Amnesia/vague: roll random fields to be vague (0.5f) or unknown (0f)
-				req.CustomKnowledge[ChatTopic.Species] = Random.value < 0.5f ? 0.5f : 0f;
-				req.CustomKnowledge[ChatTopic.ShipClass] = Random.value < 0.5f ? 0.5f : 0f;
-				req.CustomKnowledge[ChatTopic.Equipment] = Random.value < 0.5f ? 0.5f : 0f;
-				req.CustomKnowledge[ChatTopic.Needs] = Random.value < 0.5f ? 0.5f : 0f;
-				req.CustomKnowledge[ChatTopic.Body] = Random.value < 0.5f ? 0.5f : 0f;
+				customKnowledge[ChatTopic.Species] = Random.value < 0.5f ? 0.5f : 0f;
+				customKnowledge[ChatTopic.ShipClass] = Random.value < 0.5f ? 0.5f : 0f;
+				customKnowledge[ChatTopic.Equipment] = Random.value < 0.5f ? 0.5f : 0f;
+				customKnowledge[ChatTopic.Needs] = Random.value < 0.5f ? 0.5f : 0f;
+				customKnowledge[ChatTopic.Body] = Random.value < 0.5f ? 0.5f : 0f;
 			}
 			else // isHard
 			{
-				req.Clarity = Random.Range(0.2f, 0.5f);
-				req.Cooperation = Random.Range(0.2f, 0.5f);
-				req.Nervousness = Random.Range(0.6f, 0.95f);
+				clarity = Random.Range(0.2f, 0.5f);
+				cooperation = Random.Range(0.2f, 0.5f);
+				nervousness = Random.Range(0.6f, 0.95f);
 
 				// Normal hard pilot (very amnesiac and uncooperative)
-				req.CustomKnowledge[ChatTopic.Species] = 0f;
-				req.CustomKnowledge[ChatTopic.ShipClass] = 0f;
-				req.CustomKnowledge[ChatTopic.Equipment] = 0f;
-				req.CustomKnowledge[ChatTopic.Needs] = 0f;
-				req.CustomKnowledge[ChatTopic.Body] = 0f;
-				req.CustomKnowledge[ChatTopic.Occupation] = 0f;
+				customKnowledge[ChatTopic.Species] = 0f;
+				customKnowledge[ChatTopic.ShipClass] = 0f;
+				customKnowledge[ChatTopic.Equipment] = 0f;
+				customKnowledge[ChatTopic.Needs] = 0f;
+				customKnowledge[ChatTopic.Body] = 0f;
+				customKnowledge[ChatTopic.Occupation] = 0f;
 			}
 
-			return req;
+			return new PilotPersona(req, clarity, cooperation, nervousness, customKnowledge);
 		}
 
 		private static ShipAspect RollShipClass(CelestialBodyAspect body)
 		{
+			// 35% of the Pilots just grab a ship at random
 			if (Random.value < 0.35f)
 			{
 				return Pick(GameCatalog.ShipClasses);
 			}
 
+			// 75% of the Pilots actually choose a Ship safe to land on target planet
 			List<ShipAspect> rated = GameCatalog.ShipClasses.Where(shipClass =>
 				Covers(shipClass.Hull.Pressure, body.Environment.Pressure) &&
 				Covers(shipClass.Hull.Gravity, body.Environment.Gravity) &&
@@ -149,9 +161,11 @@ namespace GMTK_2026
 		private static List<EquipmentAspect> RollEquipment(SpeciesAspect species)
 		{
 			List<EquipmentAspect> carried = new List<EquipmentAspect>();
+
+			// 35% of the pilots bring no gear
 			if (Random.value < 0.35f)
 			{
-				return carried; // No equipment
+				return carried;
 			}
 
 			List<EquipmentAspect> certified = GameCatalog.Equipment
@@ -160,6 +174,8 @@ namespace GMTK_2026
 			int pieces = Random.value < 0.25f ? 2 : 1;
 			for (int i = 0; i < pieces; i++)
 			{
+				// 75% use equipment they are allowed to use
+				// 25% are using uncertified equipment
 				bool useCertified = certified.Count > 0 && Random.value < 0.75f;
 				EquipmentAspect pick = useCertified
 					? certified[Random.Range(0, certified.Count)]
@@ -177,17 +193,17 @@ namespace GMTK_2026
 
 		private void OnDecisionMade(PlayerChoice choice)
 		{
-			if (_request == null || _request.IsResolved)
+			if (_persona == null || _persona.Request is not PilotRequestBase request || request.IsResolved)
 			{
 				return;
 			}
-			_request.Resolve();
+			request.Resolve();
 
-			RequestVerdict verdict = _request.Evaluate();
+			RequestVerdict verdict = request.Evaluate();
 			bool playerApproved = choice == PlayerChoice.Approved;
 			bool correct = playerApproved == verdict.IsApproved;
 
-			string pilot = _request.Pilot?.Name;
+			string pilot = request.Pilot?.Name;
 			string decision = playerApproved ? "ACCESS" : "DECLINE";
 			string why = verdict.IsApproved
 				? "All survival checks passed."
@@ -198,7 +214,7 @@ namespace GMTK_2026
 
 			if (correct)
 			{
-				float elapsedSeconds = _request.TimeLimit - _request.TimeRemaining;
+				float elapsedSeconds = request.TimeLimit - request.TimeRemaining;
 				Dependency.StatsController.RegisterCorrect(elapsedSeconds);
 				Dependency.LogController.Log($"{pilot} — {decision} — Correct", LogLevel.Accent);
 				Dependency.ToastWindow.Show("Correct decision", ToastType.Ok);
@@ -211,15 +227,16 @@ namespace GMTK_2026
 				Dependency.ToastWindow.Show("Wrong decision — see log", ToastType.Error);
 			}
 
-			FinishRequest(choice, timedOut: false);
+			FinishRequest(choice);
 		}
 
 		private void OnRequestExpired(PilotRequestBase request)
 		{
-			if (request != _request || request.IsResolved)
+			if (request != _persona.Request || request.IsResolved)
 			{
 				return;
 			}
+
 			request.Resolve();
 
 			RequestVerdict verdict = request.Evaluate();
@@ -231,13 +248,13 @@ namespace GMTK_2026
 			Dependency.LogController.Log($"Correct action was {correctAction}", LogLevel.Info);
 			Dependency.ToastWindow.Show("Request timed out", ToastType.Error);
 
-			FinishRequest(PlayerChoice.Denied, timedOut: true);
+			FinishRequest(PlayerChoice.None);
 		}
 
-		private void FinishRequest(PlayerChoice choice, bool timedOut)
+		private void FinishRequest(PlayerChoice choice)
 		{
 			// Freeze input, let the pilot get their parting line in, then move on.
-			Dependency.ChatController.ShowDecisionReaction(choice, timedOut);
+			Dependency.ChatController.ShowDecisionReaction(choice);
 			Dependency.ChatController.EndConversationInputOnly();
 			StartCoroutine(NextRequestAfterDelay());
 		}
@@ -247,7 +264,7 @@ namespace GMTK_2026
 			yield return new WaitForSeconds(_resultDisplaySeconds);
 
 			Dependency.ChatController.EndConversation();
-			Dependency.RequestsController.RemoveRequest(_request);
+			Dependency.RequestsController.RemoveRequest(_persona.Request);
 
 			SessionStatsController stats = Dependency.StatsController;
 			if (stats.Mistakes >= 3)
